@@ -42,7 +42,7 @@ def display_video(filename):
     cap = cv2.VideoCapture(filename)
 
     # Check if camera opened successfully
-    if cap.isOpened() == False:
+    if not cap.isOpened():
         print("Error opening video stream or file")
 
     # Read until video is completed
