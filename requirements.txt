@@ -1,7 +1,12 @@
+# Packages to be installed to run the system
+# command: pip install -r requirements.txt
+
 pillow
-tqdm
-opencv-python
+tqdm~=4.63.1
+opencv-python~=4.5.5.64
 pandas
 pyyaml
 matplotlib
 seaborn
+numpy~=1.22.3
+torch~=1.11.0

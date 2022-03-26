@@ -1,8 +1,8 @@
 from base64 import b64encode
-#from google.colab import files
-#from google.colab.patches import cv2_imshow
-#from IPython.display import HTML
-#from PIL import Image
+# from google.colab import files
+# from google.colab.patches import cv2_imshow
+# from IPython.display import HTML
+# from PIL import Image
 from tqdm import tqdm
 import cv2
 import numpy as np
@@ -40,7 +40,7 @@ convert_video(filename)
 
 model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True, verbose=False)
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-model.cuda(device)
+model.to(device)
 
 
 def center_distance(xyxy1, xyxy2):
