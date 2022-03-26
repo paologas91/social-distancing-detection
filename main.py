@@ -21,7 +21,7 @@ def convert_video(path):
         os.remove(compressed_path)
 
     # Convert video in a specific format
-    os.system(f"C:\\Users\\pgasp\\Desktop\\ffmpeg-5.0-essentials_build\\bin\\ffmpeg -i {path} -vcodec libx264 {compressed_path}")
+    os.system(f"ffmpeg -i {path} -vcodec libx264 {compressed_path}")
 
     # Show video in html video player
     '''mp4 = open(compressed_path, 'rb').read()
