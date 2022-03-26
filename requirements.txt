@@ -1,0 +1,7 @@
+pillow
+tqdm
+opencv-python
+pandas
+pyyaml
+matplotlib
+seaborn
