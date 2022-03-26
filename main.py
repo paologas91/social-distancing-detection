@@ -39,7 +39,8 @@ convert_video(filename)
 # Load model
 
 model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True, verbose=False)
-model.cuda('cuda:0')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+model.cuda(device)
 
 
 def center_distance(xyxy1, xyxy2):
