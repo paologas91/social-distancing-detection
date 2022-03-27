@@ -35,7 +35,6 @@ def convert_video(path):
 
 
 def display_video(filename):
-
     counter = 0
     # Create a VideoCapture object and read from input file
     # If the input is the camera, pass 0 instead of the video file name
@@ -51,7 +50,7 @@ def display_video(filename):
         ret, frame = cap.read()
         if ret:
             print("frame n° ", counter)
-            counter = counter+1
+            counter = counter + 1
             # Display the resulting frame
             cv2.imshow('Frame', frame)
 
@@ -156,3 +155,39 @@ def detect_people_on_video(model, filename, confidence, distance=60):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+
+
+def recover_four_points(filename):
+
+    global image, mouse_pts
+
+    mouse_pts = []
+    cap = cv2.VideoCapture(filename)
+    cv2.namedWindow('first_frame')
+    cv2.setMouseCallback('first_frame', get_mouse_points)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite('first_frame.jpg', frame)
+            break
+    cap.release()
+
+    image = cv2.imread('first_frame.jpg')
+    while True:
+        cv2.imshow('first_frame', image)
+        cv2.waitKey(1)
+        if len(mouse_pts) == 4:
+            cv2.destroyWindow('first_frame')
+            break
+
+
+def get_mouse_points(event, x, y, flags, param):
+    # Used to mark 4 points on the frame zero of the video that will be warped
+    global mouseX, mouseY
+    if event == cv2.EVENT_LBUTTONDOWN:
+        mouseX, mouseY = x, y
+        cv2.circle(image, (x, y), 10, (0, 255, 255), 10)
+        mouse_pts.append((x, y))
+        print("Point detected")
+        print(mouse_pts)

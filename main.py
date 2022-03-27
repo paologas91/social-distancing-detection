@@ -3,18 +3,19 @@
 # from IPython.display import HTML
 # from PIL import Image
 
-import torch
-from functions import detect_people_on_video, convert_video, load_model, display_video
+from functions import *
 
 # convert video
 filename = 'campus4-c0.avi'
 convert_video(filename)
 
 # display video
-display_video('compressed_campus4-c0.mp4')
+# display_video('compressed_campus4-c0.mp4')
 
 # Load model
 model = load_model()
 
 # detect people
 # detect_people_on_video(model, filename, confidence=0.5)
+
+recover_four_points(filename)
