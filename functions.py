@@ -6,7 +6,7 @@ import torch
 
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True, verbose=False)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True, verbose=False)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     return model
@@ -110,6 +110,8 @@ def detect_people_on_video(model, filename, confidence=0.9, distance=60):
                 frame = detect_people_on_frame(model, frame, confidence, distance)
                 # Write new video
                 out.write(frame)
+                cv2.imshow("Capturing", frame)
+                cv2.waitKey(1)
                 pbar.update(1)
             else:
                 break
