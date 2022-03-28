@@ -4,6 +4,8 @@ import numpy as np
 import os
 import torch
 
+global random_frame, image, mouse_pts, fps, width, height
+
 
 def load_model():
     model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True, verbose=False)
@@ -26,7 +28,11 @@ def convert_video(path):
 
 
 def display_video(filename):
+    """
 
+    :param filename:
+    :return:
+    """
     global random_frame
     counter = 0
     # Create a VideoCapture object and read from input file
@@ -46,7 +52,7 @@ def display_video(filename):
             counter = counter + 1
             if counter == 550:
                 random_frame = frame
-                cv2.imwrite('random_frame.jpg',random_frame)
+                cv2.imwrite('random_frame.jpg', random_frame)
             # Display the resulting frame
             cv2.imshow('Frame', frame)
 
@@ -66,7 +72,12 @@ def display_video(filename):
 
 
 def center_distance(xyxy1, xyxy2):
-    """Calculate the distance of the centers of the boxes."""
+    """
+    Calculate the distance of the centers of the boxes.
+    :param xyxy1:
+    :param xyxy2:
+    :return:
+    """
     a, b, c, d = xyxy1
     x1 = int(np.mean([a, c]))
     y1 = int(np.mean([b, d]))
@@ -80,7 +91,14 @@ def center_distance(xyxy1, xyxy2):
 
 
 def detect_people_on_frame(model, img, confidence, distance):
-    """Detect people on a frame and draw the rectangles and lines."""
+    """
+    Detect people on a frame and draw the rectangles and lines.
+    :param model:
+    :param img:
+    :param confidence:
+    :param distance:
+    :return:
+    """
     results = model([img[:, :, ::-1]])  # Pass the frame through the model and get the boxes
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
@@ -115,7 +133,14 @@ def detect_people_on_frame(model, img, confidence, distance):
 
 
 def detect_people_on_video(model, filename, confidence, distance=60):
-    """Detect people on a video and draw the rectangles and lines."""
+    """
+    Detect people on a video and draw the rectangles and lines.
+    :param model:
+    :param filename:
+    :param confidence:
+    :param distance:
+    :return:
+    """
 
     # Capture video
     cap = cv2.VideoCapture(filename)
@@ -155,8 +180,12 @@ def detect_people_on_video(model, filename, confidence, distance=60):
 
 
 def recover_four_points(filename):
-    global image, mouse_pts
+    """
 
+    :param filename:
+    :return:
+    """
+    global mouse_pts, image
     window_name = 'first_frame'
     extension = '.jpg'
     mouse_pts = []
@@ -182,10 +211,16 @@ def recover_four_points(filename):
 
 
 def get_mouse_points(event, x, y, flags, param):
-    # Used to mark 4 points on the frame zero of the video that will be warped
-    global mouseX, mouseYx
+    """
+    Used to mark 4 points on the frame zero of the video that will be warped
+    :param event:
+    :param x:
+    :param y:
+    :param flags:
+    :param param
+    :return:
+    """
     if event == cv2.EVENT_LBUTTONDOWN:
-        mouseX, mouseY = x, y
 
         if len(mouse_pts) != 5:
             cv2.circle(image, (x, y), 3, (0, 255, 255), 5, -1)
@@ -199,6 +234,10 @@ def get_mouse_points(event, x, y, flags, param):
 
 
 def ask_to_confirm():
+    """
+
+    :return: 
+    """
     window_name = 'first_frame_with_polygon'
     extension = '.jpg'
     first_frame = cv2.imread(window_name + extension)
@@ -212,6 +251,7 @@ def ask_to_confirm():
         cv2.destroyWindow(window_name)
         os.remove(window_name + extension)
     return False
+
 
 '''
 def compute_bird_eye(filename):
@@ -243,14 +283,20 @@ def compute_bird_eye(filename):
     cv2.imwrite('bird_eye.jpg', out)
 '''
 
+
 def bird_eye(filename):
-    SOLID_BACK_COLOR = (41, 41, 41)
-    global fps, width, height
+    """
+
+    :param filename:
+    :return:
+    """
+    solid_back_color = (41, 41, 41)
 
     # Capture video
     cap = cv2.VideoCapture(filename)
 
     # Get video properties
+    global fps, width, height
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -259,7 +305,7 @@ def bird_eye(filename):
     frame = cv2.imread('random_frame.jpg')
 
     # Get perspective
-    M, Minv = get_camera_perspective(frame, mouse_pts)
+    mask, inverse_mask = get_camera_perspective(frame, mouse_pts)
     print(mouse_pts)
     '''pts = np.float32(np.array([mouse_pts[2:]]))
     warped_pt = cv2.perspectiveTransform(pts, M)[0]
@@ -273,22 +319,29 @@ def bird_eye(filename):
 
     bird_image[:] = SOLID_BACK_COLOR
     pedestrian_detect = frame '''
-    bird_image = cv2.warpPerspective(frame, M, (width, height))
+    bird_image = cv2.warpPerspective(frame, mask, (width, height))
     cv2.imshow('perspective_window', bird_image)
     cv2.waitKey(0)
 
 
 def get_camera_perspective(img, src_points):
-    IMAGE_H = img.shape[0]
-    IMAGE_W = img.shape[1]
-    print(IMAGE_W)
-    print(IMAGE_H)
+    """
+
+    :param img:
+    :param src_points:
+    :return:
+    """
+    img_height = img.shape[0]
+    img_weight = img.shape[1]
+    print(img_weight)
+    print(img_height)
     src = np.float32(np.array(src_points))
     # [0,H] bottom-left, [W,H] bottom-right, [H/2,H/2] top-left, [2/3W,H/2] top-right
     # dst = np.float32([[0, IMAGE_H], [IMAGE_W, IMAGE_H3], [0, 0], [IMAGE_W3, 0]])
-    dst = np.float32([[0, IMAGE_H], [IMAGE_W, IMAGE_H], [IMAGE_H/2, IMAGE_H/2], [(2/3*IMAGE_W), IMAGE_H/2]])
+    dst = np.float32([[0, img_height], [img_weight, img_height], [img_height/2, img_height/2], [(2/3*img_weight),
+                                                                                                img_height/2]])
 
-    M = cv2.getPerspectiveTransform(src, dst)
-    M_inv = cv2.getPerspectiveTransform(dst, src)
+    mask = cv2.getPerspectiveTransform(src, dst)
+    inverse_mask = cv2.getPerspectiveTransform(dst, src)
 
-    return M, M_inv
+    return mask, inverse_mask
