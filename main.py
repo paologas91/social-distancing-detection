@@ -10,7 +10,7 @@ filename = 'campus4-c0.avi'
 convert_video(filename)
 
 # display video
-display_video('compressed_campus4-c0.mp4')
+display_video('campus4-c0.avi')
 
 # Load model
 model = load_model()
@@ -22,10 +22,8 @@ while not answer:
     answer = ask_to_confirm()
 
 # compute the top-down perspective (bird's eye view)
-# compute_bird_eye('campus4-c0.avi')
+compute_bird_eye(filename)
 
 
 # detect people and compute distances among people
 # detect_people_on_video(model, filename, confidence=0.5)
-
-bird_eye(filename)
