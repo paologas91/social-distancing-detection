@@ -158,36 +158,60 @@ def detect_people_on_video(model, filename, confidence, distance=60):
 
 
 def recover_four_points(filename):
-
     global image, mouse_pts
 
+    window_name = 'first_frame'
+    extension = '.jpg'
     mouse_pts = []
     cap = cv2.VideoCapture(filename)
-    cv2.namedWindow('first_frame')
-    cv2.setMouseCallback('first_frame', get_mouse_points)
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, get_mouse_points)
 
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
-            cv2.imwrite('first_frame.jpg', frame)
+            cv2.imwrite(window_name + extension, frame)
             break
     cap.release()
 
-    image = cv2.imread('first_frame.jpg')
-    while True:
-        cv2.imshow('first_frame', image)
+    image = cv2.imread(window_name + extension)
+
+    while len(mouse_pts) < 4:
+        cv2.imshow(window_name, image)
         cv2.waitKey(1)
-        if len(mouse_pts) == 4:
-            cv2.destroyWindow('first_frame')
-            break
+
+    cv2.imwrite(window_name + '_with_polygon' + extension, image)
+    cv2.destroyWindow(window_name)
 
 
 def get_mouse_points(event, x, y, flags, param):
     # Used to mark 4 points on the frame zero of the video that will be warped
-    global mouseX, mouseY
+    global mouseX, mouseYx
     if event == cv2.EVENT_LBUTTONDOWN:
         mouseX, mouseY = x, y
-        cv2.circle(image, (x, y), 10, (0, 255, 255), 10)
-        mouse_pts.append((x, y))
-        print("Point detected")
-        print(mouse_pts)
+
+        if len(mouse_pts) != 5:
+            cv2.circle(image, (x, y), 3, (0, 255, 255), 5, -1)
+            mouse_pts.append((x, y))
+            print("Point detected")
+            print(mouse_pts)
+
+        if len(mouse_pts) == 4:
+            pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[2], mouse_pts[3]], np.int32)
+            cv2.polylines(image, [pts], True, (0, 255, 255), thickness=4)
+
+
+def ask_to_confirm():
+    window_name = 'first_frame_with_polygon'
+    extension = '.jpg'
+    first_frame = cv2.imread(window_name + extension)
+    cv2.imshow(window_name, first_frame)
+    cv2.waitKey(1)
+    print('Do you want to confirm the choice? (y/n)')
+    answer = input()
+    if answer == 'y' or answer == 'Y':
+        return True
+    else:
+        cv2.destroyWindow(window_name)
+        os.remove(window_name + extension)
+    return False

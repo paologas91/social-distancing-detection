@@ -15,7 +15,14 @@ convert_video(filename)
 # Load model
 model = load_model()
 
-# detect people
+# recover the four points and ask to confirm the choice
+answer = False
+while not answer:
+    recover_four_points(filename)
+    answer = ask_to_confirm()
+
+# compute the bird eye
+
+# detect people and compute distances among people
 # detect_people_on_video(model, filename, confidence=0.5)
 
-recover_four_points(filename)
