@@ -24,17 +24,10 @@ def convert_video(path):
     # Convert video in a specific format
     os.system(f"ffmpeg -i {path} -vcodec libx264 {compressed_path}")
 
-    # Show video in html video player
-    '''mp4 = open(compressed_path, 'rb').read()
-    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
-    return HTML("""
-    <video width=800 controls>
-        <source src="%s" type="video/mp4">
-    </video>
-    """ % data_url)'''
-
 
 def display_video(filename):
+
+    global random_frame
     counter = 0
     # Create a VideoCapture object and read from input file
     # If the input is the camera, pass 0 instead of the video file name
@@ -51,6 +44,9 @@ def display_video(filename):
         if ret:
             print("frame n° ", counter)
             counter = counter + 1
+            if counter == 550:
+                random_frame = frame
+                cv2.imwrite('random_frame.jpg',random_frame)
             # Display the resulting frame
             cv2.imshow('Frame', frame)
 
@@ -120,13 +116,14 @@ def detect_people_on_frame(model, img, confidence, distance):
 
 def detect_people_on_video(model, filename, confidence, distance=60):
     """Detect people on a video and draw the rectangles and lines."""
+
     # Capture video
     cap = cv2.VideoCapture(filename)
 
-    # Get video properties
+    '''Get video properties
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))'''
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -197,7 +194,7 @@ def get_mouse_points(event, x, y, flags, param):
             print(mouse_pts)
 
         if len(mouse_pts) == 4:
-            pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[2], mouse_pts[3]], np.int32)
+            pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[3], mouse_pts[2]], np.int32)
             cv2.polylines(image, [pts], True, (0, 255, 255), thickness=4)
 
 
@@ -215,3 +212,83 @@ def ask_to_confirm():
         cv2.destroyWindow(window_name)
         os.remove(window_name + extension)
     return False
+
+'''
+def compute_bird_eye(filename):
+    global width, height, fps
+
+    # Capture video
+    cap = cv2.VideoCapture(filename)
+
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
+
+    frame = cv2.imread('first_frame.jpg')
+
+    # mapping the ROI (region of interest) into a rectangle
+    input_pts = np.float32([mouse_pts[0], mouse_pts[1], mouse_pts[1], mouse_pts[3]])
+    output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
+
+    print(input_pts)
+    print(output_pts)
+
+    # Compute the transformation matrix
+    M = cv2.getPerspectiveTransform(input_pts, output_pts)
+    out = cv2.warpPerspective(frame, M, (width, height))
+    print(M)
+
+    cv2.imwrite('bird_eye.jpg', out)
+'''
+
+def bird_eye(filename):
+    SOLID_BACK_COLOR = (41, 41, 41)
+    global fps, width, height
+
+    # Capture video
+    cap = cv2.VideoCapture(filename)
+
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    scale_w = 1.2 / 2
+    scale_h = 4 / 2
+    frame = cv2.imread('random_frame.jpg')
+
+    # Get perspective
+    M, Minv = get_camera_perspective(frame, mouse_pts)
+    print(mouse_pts)
+    '''pts = np.float32(np.array([mouse_pts[2:]]))
+    warped_pt = cv2.perspectiveTransform(pts, M)[0]
+    d_thresh = np.sqrt(
+        (warped_pt[0][0] - warped_pt[1][0])  2
+        + (warped_pt[0][1] - warped_pt[1][1])  2
+    )
+    bird_image = np.zeros(
+        (int(height * scale_h), int(width * scale_w), 3), np.uint8
+    )
+
+    bird_image[:] = SOLID_BACK_COLOR
+    pedestrian_detect = frame '''
+    bird_image = cv2.warpPerspective(frame, M, (width, height))
+    cv2.imshow('perspective_window', bird_image)
+    cv2.waitKey(0)
+
+
+def get_camera_perspective(img, src_points):
+    IMAGE_H = img.shape[0]
+    IMAGE_W = img.shape[1]
+    print(IMAGE_W)
+    print(IMAGE_H)
+    src = np.float32(np.array(src_points))
+    # [0,H] bottom-left, [W,H] bottom-right, [H/2,H/2] top-left, [2/3W,H/2] top-right
+    # dst = np.float32([[0, IMAGE_H], [IMAGE_W, IMAGE_H3], [0, 0], [IMAGE_W3, 0]])
+    dst = np.float32([[0, IMAGE_H], [IMAGE_W, IMAGE_H], [IMAGE_H/2, IMAGE_H/2], [(2/3*IMAGE_W), IMAGE_H/2]])
+
+    M = cv2.getPerspectiveTransform(src, dst)
+    M_inv = cv2.getPerspectiveTransform(dst, src)
+
+    return M, M_inv
