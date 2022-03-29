@@ -5,12 +5,13 @@
 
 from functions import *
 
+
 # convert video
 filename = 'campus4-c0.avi'
 convert_video(filename)
 
 # display video
-display_video('campus4-c0.avi')
+display_video(filename)
 
 # Load model
 model = load_model()
@@ -22,8 +23,9 @@ while not answer:
     answer = ask_to_confirm()
 
 # compute the top-down perspective (bird's eye view)
-compute_bird_eye(filename)
+# compute_bird_eye()
 
 
 # detect people and compute distances among people
 # detect_people_on_video(model, filename, confidence=0.5)
+bird_detect_people_on_video(model, filename, confidence=0.5)
