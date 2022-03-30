@@ -4,11 +4,15 @@ import numpy as np
 import os
 import torch
 
-global random_frame, image, mouse_pts, fps, width, height
+global random_frame, img, fps, width, height
+mouse_pts = []
+preview = None
+initialPoint = (-1, -1)
+filled = False
 
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, verbose=False)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True, verbose=False)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     return model
@@ -166,7 +170,8 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
-                bird_eye_background = cv2.line(bird_eye_background, (int(x1), int(y1/3)), (int(x2), int(y2/3)), (0, 0, 255), 2)
+                bird_eye_background = cv2.line(bird_eye_background, (int(x1), int(y1 / 3)), (int(x2), int(y2 / 3)),
+                                               (0, 0, 255), 2)
                 # img = cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
@@ -177,7 +182,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
 
         x, y = bird_center
         x = int(x)
-        y = int(y/3)
+        y = int(y / 3)
 
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
@@ -222,7 +227,7 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # if os.path.exists('output.avi'):
     # os.remove('output.avi')
-    out = cv2.VideoWriter('output.avi', fourcc, fps, (width*2, height))
+    out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
 
     # Iterate through frames and detect people
     vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -257,13 +262,13 @@ def recover_four_points(filename):
     :param filename:
     :return:
     """
-    global mouse_pts, image
+    global mouse_pts, img, filled
     window_name = 'first_frame'
     extension = '.jpg'
     mouse_pts = []
     cap = cv2.VideoCapture(filename)
     cv2.namedWindow(window_name)
-    cv2.setMouseCallback(window_name, get_mouse_points)
+    cv2.setMouseCallback(window_name, draw_lines)
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -272,16 +277,22 @@ def recover_four_points(filename):
             break
     cap.release()
 
-    image = cv2.imread(window_name + extension)
+    img = cv2.imread(window_name + extension)
 
-    while len(mouse_pts) < 4:
-        cv2.imshow(window_name, image)
-        cv2.waitKey(1)
+    while not filled:
+        # if we are drawing show preview, otherwise the image
+        if preview is None:
+            cv2.imshow('first_frame', img)
+        else:
+            cv2.imshow('first_frame', preview)
+        k = cv2.waitKey(1) & 0xFF
+        if k == ord('q'):
+            break
 
-    cv2.imwrite(window_name + '_with_polygon' + extension, image)
+    cv2.imwrite(window_name + '_with_polygon' + extension, img)
     cv2.destroyWindow(window_name)
 
-
+'''
 def get_mouse_points(event, x, y, flags, param):
     """
     Used to mark 4 points on the frame zero of the video that will be warped
@@ -295,20 +306,84 @@ def get_mouse_points(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
 
         if len(mouse_pts) != 5:
-            cv2.circle(image, (x, y), 3, (0, 255, 255), 5, -1)
+            cv2.circle(img, (x, y), 3, (0, 255, 255), 5, -1)
             mouse_pts.append((x, y))
             print("Point detected")
             print(mouse_pts)
 
         if len(mouse_pts) == 4:
             pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[3], mouse_pts[2]], np.int32)
-            cv2.polylines(image, [pts], True, (0, 255, 255), thickness=4)
+            cv2.polylines(img, [pts], True, (0, 255, 255), thickness=4)
+'''
+
+
+def draw_lines(event, x, y, flags, param):
+    """
+
+    :param event:
+    :param x:
+    :param y:
+    :param flags:
+    :param param:
+    :return:
+    """
+    global initialPoint, img, preview, mouse_pts, filled
+
+    if len(mouse_pts) == 0:
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # new initial point and preview is now a copy of the original image
+            initialPoint = (x, y)
+            preview = img.copy()
+            # this will be a point at this point in time
+            cv2.line(preview, initialPoint, (x, y), (0, 255, 0), 4)
+            mouse_pts.append((x, y))
+
+    elif len(mouse_pts) == 1:
+        if event == cv2.EVENT_MOUSEMOVE:
+            if preview is not None:
+                preview = img.copy()
+                cv2.line(preview, mouse_pts[0], (x, y), (0, 255, 0), 4)
+
+        elif event == cv2.EVENT_LBUTTONDOWN:
+            if preview is not None:
+                preview = None
+                cv2.line(img, mouse_pts[0], (x, y), (255, 0, 0), 4)
+                mouse_pts.append((x, y))
+
+    elif len(mouse_pts) == 2:
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if preview is not None:
+                preview = None
+                cv2.line(img, mouse_pts[1], (x, y), (255, 0, 0), 4)
+                mouse_pts.append((x, y))
+
+        elif event == cv2.EVENT_MOUSEMOVE:
+            preview = img.copy()
+            cv2.line(preview, mouse_pts[1], (x, y), (0, 255, 0), 4)
+
+    elif len(mouse_pts) == 3:
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if preview is not None:
+                preview = None
+                cv2.line(img, mouse_pts[2], (x, y), (255, 0, 0), 4)
+                mouse_pts.append((x, y))
+        elif event == cv2.EVENT_MOUSEMOVE:
+            preview = img.copy()
+            cv2.line(preview, mouse_pts[2], (x, y), (0, 255, 0), 4)
+
+    elif len(mouse_pts) == 4:
+        pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[2], mouse_pts[3]], np.int32)
+        cv2.polylines(img, [pts], True, (0, 255, 255), thickness=4)
+        filled = True
 
 
 def ask_to_confirm():
     """
     :return:
     """
+    global filled
     window_name = 'first_frame_with_polygon'
     extension = '.jpg'
     first_frame = cv2.imread(window_name + extension)
@@ -322,6 +397,7 @@ def ask_to_confirm():
     else:
         cv2.destroyWindow(window_name)
         os.remove(window_name + extension)
+        filled = False
     return False
 
 
@@ -334,7 +410,7 @@ def compute_bird_eye(filename):
     frame = cv2.imread('first_frame.jpg')
 
     # mapping the ROI (region of interest) into a rectangle
-    input_pts = np.float32([mouse_pts[0], mouse_pts[1], mouse_pts[3], mouse_pts[2]])
+    input_pts = np.float32([mouse_pts[3], mouse_pts[2], mouse_pts[1], mouse_pts[0]])
     output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
 
     # Compute the transformation matrix
