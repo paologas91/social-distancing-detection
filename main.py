@@ -2,11 +2,12 @@
 # from google.colab.patches import cv2_imshow
 # from IPython.display import HTML
 # from PIL import Image
+import numpy as np
 
 from functions import *
 
 # convert video
-filename = 'test.mp4'
+filename = 'campus4-c0.avi'
 convert_video(filename)
 
 # display video

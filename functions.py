@@ -125,10 +125,10 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
     results = model([img[:, :, ::-1]])  # Pass the frame through the model and get the boxes
 
     # Return a new array of given shape and type, filled with zeros.
-    # bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
+    bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
 
     # fill each cell of the previous array with 200 as value
-    # bird_eye_background[:, :, :] = 0  # represents the background color
+    bird_eye_background[:, :, :] = 0  # represents the background color
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
     #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
@@ -151,7 +151,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, M)
-    warped = cv2.resize(warped, (width, height))
+    bird_eye_background = cv2.resize(bird_eye_background, (width, height))
 
     colors = ['green'] * len(bird_centers)
     for i in range(len(bird_centers)):
@@ -166,7 +166,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
-                warped = cv2.line(warped, (int(x1), int(y1/3)), (int(x2), int(y2/3)), (0, 0, 255), 2)
+                bird_eye_background = cv2.line(bird_eye_background, (int(x1), int(y1/3)), (int(x2), int(y2/3)), (0, 0, 255), 2)
                 # img = cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
@@ -179,9 +179,10 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
         x = int(x)
         y = int(y/3)
 
-        warped = cv2.circle(warped, (x, y), 8, color, -1)
+        bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
-    warped_flip = cv2.flip(warped, 0)
+    warped_flip = cv2.flip(bird_eye_background, 0)
+    warped_flip = cv2.hconcat([warped_flip, img])
 
     '''
     for i, (x1, y1, x2, y2) in enumerate(xyxy):
@@ -196,7 +197,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
     return centers, bird_centers, warped_flip
 
 
-def bird_detect_people_on_video(model, filename, confidence, distance=60):
+def bird_detect_people_on_video(model, filename, confidence, distance=90):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:
@@ -388,7 +389,7 @@ def detect_people_on_frame(model, img, confidence, distance):
     return img
 
 
-def detect_people_on_video(model, filename, confidence, distance=60):
+def detect_people_on_video(model, filename, confidence, distance=90):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:
