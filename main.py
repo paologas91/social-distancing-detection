@@ -5,7 +5,6 @@
 
 from functions import *
 
-
 # convert video
 filename = 'campus4-c0.avi'
 convert_video(filename)

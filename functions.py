@@ -113,7 +113,7 @@ def convert_to_bird(centers, M):
     return centers
 
 
-def bird_detect_people_on_frame(model, img, confidence, distance):
+def bird_detect_people_on_frame(filename, model, img, confidence, distance):
     """
     Detect people on a frame and draw the rectangles and lines.
     :param model:
@@ -141,7 +141,7 @@ def bird_detect_people_on_frame(model, img, confidence, distance):
         center = [np.mean([x1, x2]), y2]
         centers.append(center)
 
-    M, warped = compute_bird_eye()
+    M, warped = compute_bird_eye(filename)
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, M)
@@ -172,7 +172,9 @@ def bird_detect_people_on_frame(model, img, confidence, distance):
         x = int(x)
         y = int(y)
 
-        warped = cv2.circle(warped, (x, y), 5, color, -1)
+        warped = cv2.circle(warped, (x, y), 30, color, -1)
+
+    warped_flip = cv2.flip(warped, 0)
 
     '''
     for i, (x1, y1, x2, y2) in enumerate(xyxy):
@@ -184,7 +186,7 @@ def bird_detect_people_on_frame(model, img, confidence, distance):
         img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
     '''
 
-    return centers, bird_centers, warped
+    return centers, bird_centers, warped_flip
 
 
 def bird_detect_people_on_video(model, filename, confidence, distance=60):
@@ -223,7 +225,7 @@ def bird_detect_people_on_video(model, filename, confidence, distance=60):
             # If it's ok
             if ret:
                 counter = counter + 1
-                centers, bird_centers, frame = bird_detect_people_on_frame(model, frame, confidence, distance)
+                centers, bird_centers, frame = bird_detect_people_on_frame(filename, model, frame, confidence, distance)
                 print('frame n°', counter)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
@@ -297,7 +299,6 @@ def get_mouse_points(event, x, y, flags, param):
 
 def ask_to_confirm():
     """
-
     :return:
     """
     window_name = 'first_frame_with_polygon'
@@ -316,11 +317,11 @@ def ask_to_confirm():
     return False
 
 
-def compute_bird_eye():
+def compute_bird_eye(filename):
     """
+    :param filename
     :return:
     """
-    filename = 'compressed_campus4-c0.mp4'
 
     frame = cv2.imread('first_frame.jpg')
 
