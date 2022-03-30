@@ -8,7 +8,7 @@ global random_frame, image, mouse_pts, fps, width, height
 
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True, verbose=False)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, verbose=False)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     return model
@@ -222,7 +222,7 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # if os.path.exists('output.avi'):
     # os.remove('output.avi')
-    out = cv2.VideoWriter('output.avi', fourcc, fps, (width, height * 3))
+    out = cv2.VideoWriter('output.avi', fourcc, fps, (width*2, height))
 
     # Iterate through frames and detect people
     vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
