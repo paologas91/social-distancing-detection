@@ -6,7 +6,7 @@
 from functions import *
 
 # convert video
-filename = 'campus4-c0.avi'
+filename = 'test.mp4'
 convert_video(filename)
 
 # display video

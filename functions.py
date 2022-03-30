@@ -124,6 +124,12 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
     """
     results = model([img[:, :, ::-1]])  # Pass the frame through the model and get the boxes
 
+    # Return a new array of given shape and type, filled with zeros.
+    # bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
+
+    # fill each cell of the previous array with 200 as value
+    # bird_eye_background[:, :, :] = 0  # represents the background color
+
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
     #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
     # tensor([[7.47613e+02, 4.01168e+01, 1.14978e+03, 7.12016e+02, 8.71210e-01, 0.00000e+00],
@@ -145,6 +151,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, M)
+    warped = cv2.resize(warped, (width, height))
 
     colors = ['green'] * len(bird_centers)
     for i in range(len(bird_centers)):
@@ -159,7 +166,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
-                warped = cv2.line(warped, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+                warped = cv2.line(warped, (int(x1), int(y1/3)), (int(x2), int(y2/3)), (0, 0, 255), 2)
                 # img = cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
@@ -170,9 +177,9 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
 
         x, y = bird_center
         x = int(x)
-        y = int(y)
+        y = int(y/3)
 
-        warped = cv2.circle(warped, (x, y), 30, color, -1)
+        warped = cv2.circle(warped, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(warped, 0)
 
@@ -334,8 +341,7 @@ def compute_bird_eye(filename):
     out = cv2.warpPerspective(frame, M, (width, height * 3))
     print(M)
 
-    # cv2.imshow('bird_eye', out)
-    # cv2.imwrite('bird_eye.jpg', out)
+    cv2.imwrite('bird_eye.jpg', out)
     # cv2.waitKey(0)
     return M, out
 
@@ -391,8 +397,15 @@ def detect_people_on_video(model, filename, confidence, distance=60):
     :param distance:
     :return:
     """
+    global width, height, fps
+
     # Capture video
     cap = cv2.VideoCapture(filename)
+
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
