@@ -12,7 +12,7 @@ filled = False
 
 
 def load_model():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True, verbose=False)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, verbose=False)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     return model
@@ -37,8 +37,8 @@ def display_video(filename):
     :param filename:
     :return:
     """
-    global random_frame
-    counter = 0
+
+    frame_number = 0
     # Create a VideoCapture object and read from input file
     # If the input is the camera, pass 0 instead of the video file name
     cap = cv2.VideoCapture(filename)
@@ -52,12 +52,9 @@ def display_video(filename):
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret:
-            print("frame n° ", counter)
-            counter = counter + 1
-            # save a random frame to see how the compute_bird_eye works with it
-            if counter == 550:
-                random_frame = frame
-                cv2.imwrite('random_frame.jpg', random_frame)
+            print("frame n° ", frame_number)
+            frame_number = frame_number + 1
+
             # Display the resulting frame
             cv2.imshow(filename, frame)
 
@@ -87,25 +84,6 @@ def calculate_distance(point1, point2):
     return np.linalg.norm([x1 - x2, y1 - y2])
 
 
-def center_distance(xyxy1, xyxy2):
-    """
-    Calculate the distance of the centers of the boxes.
-    :param xyxy1:
-    :param xyxy2:
-    :return:
-    """
-    a, b, c, d = xyxy1
-    x1 = int(np.mean([a, c]))
-    y1 = int(np.mean([b, d]))
-
-    e, f, g, h = xyxy2
-    x2 = int(np.mean([e, g]))
-    y2 = int(np.mean([f, h]))
-
-    dist = np.linalg.norm([x1 - x2, y1 - y2])
-    return dist, x1, y1, x2, y2
-
-
 def convert_to_bird(centers, M):
     """Apply the perpective to the bird's-eye view.
     :param centers:
@@ -126,13 +104,13 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
     :param distance:
     :return:
     """
-    results = model([img[:, :, ::-1]])  # Pass the frame through the model and get the boxes
+
+    # Pass the frame through the model and get the boxes
+    results = model([img[:, :, ::-1]])
 
     # Return a new array of given shape and type, filled with zeros.
     bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
-
-    # fill each cell of the previous array with 200 as value
-    bird_eye_background[:, :, :] = 0  # represents the background color
+    bird_eye_background[:, :, :] = 0
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
     #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
@@ -151,7 +129,7 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
         center = [np.mean([x1, x2]), y2]
         centers.append(center)
 
-    M, warped = compute_bird_eye(filename)
+    M, warped = compute_bird_eye()
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, M)
@@ -170,9 +148,10 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
-                bird_eye_background = cv2.line(bird_eye_background, (int(x1), int(y1 / 3)), (int(x2), int(y2 / 3)),
+                bird_eye_background = cv2.line(bird_eye_background,
+                                               (int(x1), int(y1 / 3)),
+                                               (int(x2), int(y2 / 3)),
                                                (0, 0, 255), 2)
-                # img = cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
@@ -188,16 +167,6 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
 
     warped_flip = cv2.flip(bird_eye_background, 0)
     warped_flip = cv2.hconcat([warped_flip, img])
-
-    '''
-    for i, (x1, y1, x2, y2) in enumerate(xyxy):
-        # Draw the boxes
-        if colors[i] == 'green':
-            color = (0, 255, 0)
-        else:
-            color = (0, 0, 255)
-        img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-    '''
 
     return centers, bird_centers, warped_flip
 
@@ -221,7 +190,7 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    counter = 0
+    frame_number = 0
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -237,9 +206,9 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
             ret, frame = cap.read()
             # If it's ok
             if ret:
-                counter = counter + 1
+                frame_number = frame_number + 1
                 centers, bird_centers, frame = bird_detect_people_on_frame(filename, model, frame, confidence, distance)
-                print('frame n°', counter)
+                print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
                 # Write new video
@@ -291,30 +260,6 @@ def recover_four_points(filename):
 
     cv2.imwrite(window_name + '_with_polygon' + extension, img)
     cv2.destroyWindow(window_name)
-
-'''
-def get_mouse_points(event, x, y, flags, param):
-    """
-    Used to mark 4 points on the frame zero of the video that will be warped
-    :param event:
-    :param x:
-    :param y:
-    :param flags:
-    :param param
-    :return:
-    """
-    if event == cv2.EVENT_LBUTTONDOWN:
-
-        if len(mouse_pts) != 5:
-            cv2.circle(img, (x, y), 3, (0, 255, 255), 5, -1)
-            mouse_pts.append((x, y))
-            print("Point detected")
-            print(mouse_pts)
-
-        if len(mouse_pts) == 4:
-            pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[3], mouse_pts[2]], np.int32)
-            cv2.polylines(img, [pts], True, (0, 255, 255), thickness=4)
-'''
 
 
 def draw_lines(event, x, y, flags, param):
@@ -401,26 +346,48 @@ def ask_to_confirm():
     return False
 
 
-def compute_bird_eye(filename):
+def compute_bird_eye():
     """
-    :param filename
     :return:
     """
 
     frame = cv2.imread('first_frame.jpg')
 
     # mapping the ROI (region of interest) into a rectangle
-    input_pts = np.float32([mouse_pts[3], mouse_pts[2], mouse_pts[1], mouse_pts[0]])
+    input_pts = np.float32([mouse_pts[0], mouse_pts[3], mouse_pts[2], mouse_pts[1]])
     output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
 
     # Compute the transformation matrix
     M = cv2.getPerspectiveTransform(input_pts, output_pts)
     out = cv2.warpPerspective(frame, M, (width, height * 3))
-    print(M)
 
     cv2.imwrite('bird_eye.jpg', out)
-    # cv2.waitKey(0)
+
     return M, out
+
+
+##########################################################################
+# ****************    OLD METHODS TO DETECT PEOPLE     *****************
+##########################################################################
+
+
+def center_distance(xyxy1, xyxy2):
+    """
+    Calculate the distance of the centers of the boxes.
+    :param xyxy1:
+    :param xyxy2:
+    :return:
+    """
+    a, b, c, d = xyxy1
+    x1 = int(np.mean([a, c]))
+    y1 = int(np.mean([b, d]))
+
+    e, f, g, h = xyxy2
+    x2 = int(np.mean([e, g]))
+    y2 = int(np.mean([f, h]))
+
+    dist = np.linalg.norm([x1 - x2, y1 - y2])
+    return dist, x1, y1, x2, y2
 
 
 def detect_people_on_frame(model, img, confidence, distance):
