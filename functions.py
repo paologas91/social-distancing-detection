@@ -95,18 +95,18 @@ def convert_to_bird(centers, M):
     return centers
 
 
-def bird_detect_people_on_frame(filename, model, img, confidence, distance):
+def bird_detect_people_on_frame(model, frame, confidence, distance):
     """
     Detect people on a frame and draw the rectangles and lines.
     :param model:
-    :param img:
+    :param frame:
     :param confidence:
     :param distance:
     :return:
     """
 
     # Pass the frame through the model and get the boxes
-    results = model([img[:, :, ::-1]])
+    results = model([frame[:, :, ::-1]])
 
     # Return a new array of given shape and type, filled with zeros.
     bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
@@ -166,12 +166,12 @@ def bird_detect_people_on_frame(filename, model, img, confidence, distance):
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(bird_eye_background, 0)
-    warped_flip = cv2.hconcat([warped_flip, img])
+    warped_flip = cv2.hconcat([warped_flip, frame])
 
     return centers, bird_centers, warped_flip
 
 
-def bird_detect_people_on_video(model, filename, confidence, distance=90):
+def bird_detect_people_on_video(model, filename, confidence, distance=60):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:
@@ -180,22 +180,13 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
     :param distance:
     :return:
     """
-    global width, height, fps
 
     # Capture video
     cap = cv2.VideoCapture(filename)
-
-    # Get video properties
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
     frame_number = 0
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # if os.path.exists('output.avi'):
-    # os.remove('output.avi')
     out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
 
     # Iterate through frames and detect people
@@ -207,10 +198,11 @@ def bird_detect_people_on_video(model, filename, confidence, distance=90):
             # If it's ok
             if ret:
                 frame_number = frame_number + 1
-                centers, bird_centers, frame = bird_detect_people_on_frame(filename, model, frame, confidence, distance)
+                centers, bird_centers, frame = bird_detect_people_on_frame(model, frame, confidence, distance)
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
+
                 # Write new video
                 out.write(frame)
                 cv2.imshow("Detecting people", frame)
@@ -231,13 +223,22 @@ def recover_four_points(filename):
     :param filename:
     :return:
     """
+
+    global width, height, fps
     global mouse_pts, img, filled
+
     window_name = 'first_frame'
     extension = '.jpg'
     mouse_pts = []
+
     cap = cv2.VideoCapture(filename)
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, draw_lines)
+
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -247,6 +248,9 @@ def recover_four_points(filename):
     cap.release()
 
     img = cv2.imread(window_name + extension)
+    color = (0, 0, 0)
+    left, right = [int(width / 2)] * 2
+    img = cv2.copyMakeBorder(img, 0, 0, left, right, cv2.BORDER_CONSTANT, value=color)
 
     while not filled:
         # if we are drawing show preview, otherwise the image
@@ -272,7 +276,7 @@ def draw_lines(event, x, y, flags, param):
     :param param:
     :return:
     """
-    global initialPoint, img, preview, mouse_pts, filled
+    global initialPoint, preview, mouse_pts, filled
 
     if len(mouse_pts) == 0:
 
