@@ -122,6 +122,7 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
     xyxy = xyxy[xyxy[:, 4] >= confidence]  # Filter desired confidence
     xyxy = xyxy[xyxy[:, 5] == 0]  # Consider only people
     xyxy = xyxy[:, :4]
+    # TODO: Number of rows of xyxy correspond to the number of person inside each frame
 
     # Calculate the centers of the bottom of the boxes
     centers = []
@@ -148,6 +149,7 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
+                # TODO: add counter everytime the line is draw, to count how much violation are occurring
                 bird_eye_background = cv2.line(bird_eye_background,
                                                (int(x1), int(y1 / 3)),
                                                (int(x2), int(y2 / 3)),
@@ -163,9 +165,12 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
         x = int(x)
         y = int(y / 3)
 
+        # TODO: Modify the radius of the circle based on video resolution
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(bird_eye_background, 0)
+    # TODO: Print on the warped_flip frame, the number of people detected and stored before
+    # TODO: Print the counter of violations
     warped_flip = cv2.hconcat([warped_flip, frame])
 
     return centers, bird_centers, warped_flip
@@ -361,10 +366,10 @@ def compute_bird_eye():
     # mapping the ROI (region of interest) into a rectangle
     input_pts = np.float32([mouse_pts[0], mouse_pts[3], mouse_pts[2], mouse_pts[1]])
     # output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
-    output_pts = np.float32([[width/4, 0], [width, 0], [width * 4, width * 3], [width/4, width * 3]])
+    output_pts = np.float32([[width / 4, 0], [width, 0], [width * 4, width * 3], [width / 4, width * 3]])
 
     cv2.circle(frame_prova, (width, 0), 8, 255, -1)
-    cv2.circle(frame_prova, (int(width/4), 0), 8, 255, -1)
+    cv2.circle(frame_prova, (int(width / 4), 0), 8, 255, -1)
     cv2.circle(frame_prova, (width, 2 * width), 8, 255, -1)
     cv2.imshow('window', frame_prova)
     # Compute the transformation matrix
