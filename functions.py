@@ -356,11 +356,17 @@ def compute_bird_eye():
     """
 
     frame = cv2.imread('first_frame.jpg')
+    frame_prova = cv2.imread('first_frame_with_polygon.jpg')
 
     # mapping the ROI (region of interest) into a rectangle
     input_pts = np.float32([mouse_pts[0], mouse_pts[3], mouse_pts[2], mouse_pts[1]])
-    output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
+    # output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
+    output_pts = np.float32([[width/4, 0], [width, 0], [width * 4, width * 3], [width/4, width * 3]])
 
+    cv2.circle(frame_prova, (width, 0), 8, 255, -1)
+    cv2.circle(frame_prova, (int(width/4), 0), 8, 255, -1)
+    cv2.circle(frame_prova, (width, 2 * width), 8, 255, -1)
+    cv2.imshow('window', frame_prova)
     # Compute the transformation matrix
     M = cv2.getPerspectiveTransform(input_pts, output_pts)
     out = cv2.warpPerspective(frame, M, (width, height * 3))
