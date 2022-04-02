@@ -1,20 +1,24 @@
-# from google.colab import files
-# from google.colab.patches import cv2_imshow
-# from IPython.display import HTML
-# from PIL import Image
-import numpy as np
-
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 from functions import *
+from model import load_model
+from video import *
+
+Tk().withdraw()
+filename = askopenfilename(title='Select a video file...', filetypes=[("all video format", ".mp4"),
+                                                                      ("all video format", ".flv"),
+                                                                      ("all video format", ".avi")
+                                                                      ])
+print(filename)
 
 # convert video
-filename = '4p-c1.avi'
 convert_video(filename)
 
 # display video
 display_video(filename)
 
 # Load model
-model = load_model()
+model = load_model('x')
 
 # recover the four points and ask to confirm the choice
 answer = False
