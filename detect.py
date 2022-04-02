@@ -17,8 +17,6 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     :param pts:
     :return:
     """
-    print("height: ", height)
-    print("width ", width)
     n_violations = 0
     # Pass the frame through the model and get the boxes
     results = model([frame[:, :, ::-1]])
@@ -37,7 +35,11 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     xyxy = xyxy[xyxy[:, 4] >= confidence]  # Filter desired confidence
     xyxy = xyxy[xyxy[:, 5] == 0]  # Consider only people
     xyxy = xyxy[:, :4]
-    # TODO: Number of rows of xyxy correspond to the number of person inside each frame
+
+    # Number of rows of xyxy correspond to the number of person inside each frame
+    shape = np.shape(xyxy)
+    print("shape of xyxy: ", shape[0])
+
 
     # Calculate the centers of the bottom of the boxes
     centers = []
@@ -100,19 +102,28 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     # TODO: Print the counter of violations
     warped_flip = cv2.hconcat([warped_flip, frame])
 
+    # Display the number of people in the frame
+    cv2.putText(img=warped_flip,
+                text="Number of people: " + str(shape[0]),
+                org=(300, 500),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=8,
+                color=(255, 0, 0),
+                thickness=2)
+
     return centers, bird_centers, warped_flip
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence, distance=60):
     """
     Detect people on a video and draw the rectangles and lines.
-    :param pts:
     :param model:
     :param filename:
-    :param confidence:
     :param fps:
     :param height:
     :param width:
+    :param pts:
+    :param confidence:
     :param distance:
     :return:
     """
@@ -135,12 +146,12 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence,
             if ret:
                 frame_number = frame_number + 1
                 centers, bird_centers, frame = detect_people_on_frame(model,
-                                                                           frame,
-                                                                           confidence,
-                                                                           distance,
-                                                                           height,
-                                                                           width,
-                                                                           pts)
+                                                                      frame,
+                                                                      confidence,
+                                                                      distance,
+                                                                      height,
+                                                                      width,
+                                                                      pts)
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)

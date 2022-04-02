@@ -49,6 +49,7 @@ def recover_four_points(filename, width):
     color = (0, 0, 0)
     left, right = [int(width / 2)] * 2
     img = cv2.copyMakeBorder(img, 0, 0, left, right, cv2.BORDER_CONSTANT, value=color)
+    cv2.imwrite(window_name + '_with_black_stripes' + extension, img)
 
     while not filled:
         # if we are drawing show preview, otherwise the image
