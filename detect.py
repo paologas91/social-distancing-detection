@@ -90,13 +90,12 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(bird_eye_background, 0)
-    # TODO: Print the counter of violations
     warped_flip = cv2.hconcat([warped_flip, frame])
 
     # Display the number of people in the frame
     cv2.putText(img=warped_flip,
                 text="Number of people: " + str(shape[0]),
-                org=(100, 100),
+                org=(370, 20),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5,
                 color=(255, 0, 0),
@@ -105,7 +104,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     # Display the number of violations in the frame
     cv2.putText(img=warped_flip,
                 text="Number of violations: " + str(n_violations),
-                org=(100, 120),
+                org=(370, 40),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5,
                 color=(255, 0, 0),
