@@ -4,12 +4,13 @@ from functions import *
 from model import load_model
 from video import *
 
+
+# select and open video file
 Tk().withdraw()
 filename = askopenfilename(title='Select a video file...', filetypes=[("all video format", ".mp4"),
                                                                       ("all video format", ".flv"),
                                                                       ("all video format", ".avi")
                                                                       ])
-print(filename)
 
 # convert video
 convert_video(filename)

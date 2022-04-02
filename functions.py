@@ -10,24 +10,24 @@ initialPoint = (-1, -1)
 filled = False
 
 
-def calculate_distance(point1, point2):
+def compute_distance(point_1, point_2):
     """Calculate usual distance.
     param point1:
     param point2:
     return:
     """
-    x1, y1 = point1
-    x2, y2 = point2
+    x1, y1 = point_1
+    x2, y2 = point_2
     return np.linalg.norm([x1 - x2, y1 - y2])
 
 
-def convert_to_bird(centers, M):
+def convert_to_bird(centers, filter_m):
     """Apply the perpective to the bird's-eye view.
     :param centers:
-    :param M:
+    :param filter_m:
     return:
     """
-    centers = [cv2.perspectiveTransform(np.float32([[center]]), M) for center in centers.copy()]
+    centers = [cv2.perspectiveTransform(np.float32([[center]]), filter_m) for center in centers.copy()]
     centers = [list(center[0, 0]) for center in centers.copy()]
     return centers
 
@@ -41,7 +41,7 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
     :param distance:
     :return:
     """
-    counter_violation = 0
+    n_violations = 0
     # Pass the frame through the model and get the boxes
     results = model([frame[:, :, ::-1]])
 
@@ -67,17 +67,17 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
         center = [np.mean([x1, x2]), y2]
         centers.append(center)
 
-    M, warped = compute_bird_eye()
+    filter_m, warped = compute_bird_eye()
 
     # Convert to bird so we can calculate the usual distance
-    bird_centers = convert_to_bird(centers, M)
+    bird_centers = convert_to_bird(centers, filter_m)
     bird_eye_background = cv2.resize(bird_eye_background, (width, height))
 
     colors = ['green'] * len(bird_centers)
     for i in range(len(bird_centers)):
         for j in range(i + 1, len(bird_centers)):
             # Calculate distance of the centers
-            dist = calculate_distance(bird_centers[i], bird_centers[j])
+            dist = compute_distance(bird_centers[i], bird_centers[j])
             if dist < distance:
                 # If dist < distance, boxes are red and a line is drawn
                 colors[i] = 'red'
@@ -87,7 +87,7 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
 
                 print(int(x1), int(y1), int(x2), int(y2))
                 # TODO: add counter everytime the line is draw, to count how much violation are occurring
-                counter_violation = counter_violation + 1
+                n_violations = n_violations + 1
                 font = cv2.FONT_HERSHEY_DUPLEX
                 color = (255, 0, 0)  # red
                 fontsize = 255
@@ -96,7 +96,13 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
                                                (int(x1), int(y1 / 3)),
                                                (int(x2), int(y2 / 3)),
                                                (0, 0, 255), 2)
-                cv2.putText(img=bird_eye_background, text="counter_violation", org=(50,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=70, color=(255, 0, 0), thickness=2)
+                cv2.putText(img=bird_eye_background,
+                            text="n_violations",
+                            org=(50, 50),
+                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=70,
+                            color=(255, 0, 0),
+                            thickness=2)
 
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
