@@ -41,7 +41,7 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
     :param distance:
     :return:
     """
-
+    counter_violation = 0
     # Pass the frame through the model and get the boxes
     results = model([frame[:, :, ::-1]])
 
@@ -87,10 +87,16 @@ def bird_detect_people_on_frame(model, frame, confidence, distance):
 
                 print(int(x1), int(y1), int(x2), int(y2))
                 # TODO: add counter everytime the line is draw, to count how much violation are occurring
+                counter_violation = counter_violation + 1
+                font = cv2.FONT_HERSHEY_DUPLEX
+                color = (255, 0, 0)  # red
+                fontsize = 255
+                position = (10, 10)
                 bird_eye_background = cv2.line(bird_eye_background,
                                                (int(x1), int(y1 / 3)),
                                                (int(x2), int(y2 / 3)),
                                                (0, 0, 255), 2)
+                cv2.putText(img=bird_eye_background, text="counter_violation", org=(50,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=70, color=(255, 0, 0), thickness=2)
 
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
