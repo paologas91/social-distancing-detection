@@ -4,7 +4,7 @@ from tkinter.filedialog import askopenfilename
 from functions import *
 from model import load_model
 from video import *
-from detect import bird_detect_people_on_video
+from detect import detect_people_on_video
 
 
 # select and open video file
