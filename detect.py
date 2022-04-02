@@ -105,9 +105,9 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     # Display the number of people in the frame
     cv2.putText(img=warped_flip,
                 text="Number of people: " + str(shape[0]),
-                org=(300, 500),
+                org=(100, 100),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=8,
+                fontScale=0.5,
                 color=(255, 0, 0),
                 thickness=2)
 
