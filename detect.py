@@ -1,0 +1,159 @@
+import cv2
+import numpy as np
+from tqdm import tqdm
+from functions import compute_distance
+from bird import convert_to_bird, compute_bird_eye
+
+
+def detect_people_on_frame(model, frame, confidence, distance, height, width, pts):
+    """
+    Detect people on a frame and draw the rectangles and lines.
+    :param model:
+    :param frame:
+    :param confidence:
+    :param distance:
+    :param height:
+    :param width:
+    :param pts:
+    :return:
+    """
+    print("height: ", height)
+    print("width ", width)
+    n_violations = 0
+    # Pass the frame through the model and get the boxes
+    results = model([frame[:, :, ::-1]])
+
+    # Return a new array of given shape and type, filled with zeros.
+    bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
+    bird_eye_background[:, :, :] = 0
+
+    xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
+    #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
+    # tensor([[7.47613e+02, 4.01168e+01, 1.14978e+03, 7.12016e+02, 8.71210e-01, 0.00000e+00],
+    #         [1.17464e+02, 1.96875e+02, 1.00145e+03, 7.11802e+02, 8.08795e-01, 0.00000e+00],
+    #         [4.23969e+02, 4.30401e+02, 5.16833e+02, 7.20000e+02, 7.77376e-01, 2.70000e+01],
+    #         [9.81310e+02, 3.10712e+02, 1.03111e+03, 4.19273e+02, 2.86850e-01, 2.70000e+01]])
+
+    xyxy = xyxy[xyxy[:, 4] >= confidence]  # Filter desired confidence
+    xyxy = xyxy[xyxy[:, 5] == 0]  # Consider only people
+    xyxy = xyxy[:, :4]
+    # TODO: Number of rows of xyxy correspond to the number of person inside each frame
+
+    # Calculate the centers of the bottom of the boxes
+    centers = []
+    for x1, y1, x2, y2 in xyxy:
+        center = [np.mean([x1, x2]), y2]
+        centers.append(center)
+
+    filter_m, warped = compute_bird_eye(height, width, pts)
+
+    # Convert to bird so we can calculate the usual distance
+    bird_centers = convert_to_bird(centers, filter_m)
+    bird_eye_background = cv2.resize(bird_eye_background, (width, height))
+
+    colors = ['green'] * len(bird_centers)
+    for i in range(len(bird_centers)):
+        for j in range(i + 1, len(bird_centers)):
+            # Calculate distance of the centers
+            dist = compute_distance(bird_centers[i], bird_centers[j])
+            if dist < distance:
+                # If dist < distance, boxes are red and a line is drawn
+                colors[i] = 'red'
+                colors[j] = 'red'
+                x1, y1 = bird_centers[i]
+                x2, y2 = bird_centers[j]
+
+                print(int(x1), int(y1), int(x2), int(y2))
+                # TODO: add counter everytime the line is draw, to count how much violation are occurring
+                n_violations = n_violations + 1
+                font = cv2.FONT_HERSHEY_DUPLEX
+                color = (255, 0, 0)  # red
+                fontsize = 255
+                position = (10, 10)
+                bird_eye_background = cv2.line(bird_eye_background,
+                                               (int(x1), int(y1 / 3)),
+                                               (int(x2), int(y2 / 3)),
+                                               (0, 0, 255), 2)
+                cv2.putText(img=bird_eye_background,
+                            text="n_violations",
+                            org=(50, 50),
+                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=70,
+                            color=(255, 0, 0),
+                            thickness=2)
+
+    for i, bird_center in enumerate(bird_centers):
+        if colors[i] == 'green':
+            color = (0, 255, 0)
+        else:
+            color = (0, 0, 255)
+
+        x, y = bird_center
+        x = int(x)
+        y = int(y / 3)
+
+        # TODO: Modify the radius of the circle based on video resolution
+        bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
+
+    warped_flip = cv2.flip(bird_eye_background, 0)
+    # TODO: Print on the warped_flip frame, the number of people detected and stored before
+    # TODO: Print the counter of violations
+    warped_flip = cv2.hconcat([warped_flip, frame])
+
+    return centers, bird_centers, warped_flip
+
+
+def detect_people_on_video(model, filename, fps, height, width, pts, confidence, distance=60):
+    """
+    Detect people on a video and draw the rectangles and lines.
+    :param pts:
+    :param model:
+    :param filename:
+    :param confidence:
+    :param fps:
+    :param height:
+    :param width:
+    :param distance:
+    :return:
+    """
+
+    # Capture video
+    cap = cv2.VideoCapture(filename)
+    frame_number = 0
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
+
+    # Iterate through frames and detect people
+    vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    with tqdm(total=vidlen) as pbar:
+        while cap.isOpened():
+            # Read a frame
+            ret, frame = cap.read()
+            # If it's ok
+            if ret:
+                frame_number = frame_number + 1
+                centers, bird_centers, frame = detect_people_on_frame(model,
+                                                                           frame,
+                                                                           confidence,
+                                                                           distance,
+                                                                           height,
+                                                                           width,
+                                                                           pts)
+                print('frame n°', frame_number)
+                print('#####centers####', centers)
+                print('####bird_centers####', bird_centers)
+
+                # Write new video
+                out.write(frame)
+                cv2.imshow("Detecting people", frame)
+                cv2.waitKey(1)
+                pbar.update(1)
+            else:
+                break
+
+    # Release everything if job is finished
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()

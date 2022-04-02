@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import os
 
-global random_frame, img, fps, width, height
+img = None
 mouse_pts = []
 preview = None
 initialPoint = (-1, -1)
@@ -21,178 +21,22 @@ def compute_distance(point_1, point_2):
     return np.linalg.norm([x1 - x2, y1 - y2])
 
 
-def convert_to_bird(centers, filter_m):
-    """Apply the perpective to the bird's-eye view.
-    :param centers:
-    :param filter_m:
-    return:
-    """
-    centers = [cv2.perspectiveTransform(np.float32([[center]]), filter_m) for center in centers.copy()]
-    centers = [list(center[0, 0]) for center in centers.copy()]
-    return centers
-
-
-def bird_detect_people_on_frame(model, frame, confidence, distance):
-    """
-    Detect people on a frame and draw the rectangles and lines.
-    :param model:
-    :param frame:
-    :param confidence:
-    :param distance:
-    :return:
-    """
-    n_violations = 0
-    # Pass the frame through the model and get the boxes
-    results = model([frame[:, :, ::-1]])
-
-    # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
-    bird_eye_background[:, :, :] = 0
-
-    xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
-    #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
-    # tensor([[7.47613e+02, 4.01168e+01, 1.14978e+03, 7.12016e+02, 8.71210e-01, 0.00000e+00],
-    #         [1.17464e+02, 1.96875e+02, 1.00145e+03, 7.11802e+02, 8.08795e-01, 0.00000e+00],
-    #         [4.23969e+02, 4.30401e+02, 5.16833e+02, 7.20000e+02, 7.77376e-01, 2.70000e+01],
-    #         [9.81310e+02, 3.10712e+02, 1.03111e+03, 4.19273e+02, 2.86850e-01, 2.70000e+01]])
-
-    xyxy = xyxy[xyxy[:, 4] >= confidence]  # Filter desired confidence
-    xyxy = xyxy[xyxy[:, 5] == 0]  # Consider only people
-    xyxy = xyxy[:, :4]
-    # TODO: Number of rows of xyxy correspond to the number of person inside each frame
-
-    # Calculate the centers of the bottom of the boxes
-    centers = []
-    for x1, y1, x2, y2 in xyxy:
-        center = [np.mean([x1, x2]), y2]
-        centers.append(center)
-
-    filter_m, warped = compute_bird_eye()
-
-    # Convert to bird so we can calculate the usual distance
-    bird_centers = convert_to_bird(centers, filter_m)
-    bird_eye_background = cv2.resize(bird_eye_background, (width, height))
-
-    colors = ['green'] * len(bird_centers)
-    for i in range(len(bird_centers)):
-        for j in range(i + 1, len(bird_centers)):
-            # Calculate distance of the centers
-            dist = compute_distance(bird_centers[i], bird_centers[j])
-            if dist < distance:
-                # If dist < distance, boxes are red and a line is drawn
-                colors[i] = 'red'
-                colors[j] = 'red'
-                x1, y1 = bird_centers[i]
-                x2, y2 = bird_centers[j]
-
-                print(int(x1), int(y1), int(x2), int(y2))
-                # TODO: add counter everytime the line is draw, to count how much violation are occurring
-                n_violations = n_violations + 1
-                font = cv2.FONT_HERSHEY_DUPLEX
-                color = (255, 0, 0)  # red
-                fontsize = 255
-                position = (10, 10)
-                bird_eye_background = cv2.line(bird_eye_background,
-                                               (int(x1), int(y1 / 3)),
-                                               (int(x2), int(y2 / 3)),
-                                               (0, 0, 255), 2)
-                cv2.putText(img=bird_eye_background,
-                            text="n_violations",
-                            org=(50, 50),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=70,
-                            color=(255, 0, 0),
-                            thickness=2)
-
-    for i, bird_center in enumerate(bird_centers):
-        if colors[i] == 'green':
-            color = (0, 255, 0)
-        else:
-            color = (0, 0, 255)
-
-        x, y = bird_center
-        x = int(x)
-        y = int(y / 3)
-
-        # TODO: Modify the radius of the circle based on video resolution
-        bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
-
-    warped_flip = cv2.flip(bird_eye_background, 0)
-    # TODO: Print on the warped_flip frame, the number of people detected and stored before
-    # TODO: Print the counter of violations
-    warped_flip = cv2.hconcat([warped_flip, frame])
-
-    return centers, bird_centers, warped_flip
-
-
-def bird_detect_people_on_video(model, filename, confidence, distance=60):
-    """
-    Detect people on a video and draw the rectangles and lines.
-    :param model:
-    :param filename:
-    :param confidence:
-    :param distance:
-    :return:
-    """
-
-    # Capture video
-    cap = cv2.VideoCapture(filename)
-    frame_number = 0
-
-    # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
-
-    # Iterate through frames and detect people
-    vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    with tqdm(total=vidlen) as pbar:
-        while cap.isOpened():
-            # Read a frame
-            ret, frame = cap.read()
-            # If it's ok
-            if ret:
-                frame_number = frame_number + 1
-                centers, bird_centers, frame = bird_detect_people_on_frame(model, frame, confidence, distance)
-                print('frame n°', frame_number)
-                print('#####centers####', centers)
-                print('####bird_centers####', bird_centers)
-
-                # Write new video
-                out.write(frame)
-                cv2.imshow("Detecting people", frame)
-                cv2.waitKey(1)
-                pbar.update(1)
-            else:
-                break
-
-    # Release everything if job is finished
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-
-
-def recover_four_points(filename):
+def recover_four_points(filename, width):
     """
 
     :param filename:
+    :param width:
     :return:
     """
 
-    global width, height, fps
     global mouse_pts, img, filled
 
     window_name = 'first_frame'
     extension = '.jpg'
-    mouse_pts = []
 
     cap = cv2.VideoCapture(filename)
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, draw_lines)
-
-    # Get video properties
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -218,6 +62,7 @@ def recover_four_points(filename):
 
     cv2.imwrite(window_name + '_with_polygon' + extension, img)
     cv2.destroyWindow(window_name)
+    return mouse_pts
 
 
 def draw_lines(event, x, y, flags, param):
@@ -277,6 +122,9 @@ def draw_lines(event, x, y, flags, param):
             cv2.line(preview, mouse_pts[2], (x, y), (0, 255, 0), 4)
 
     elif len(mouse_pts) == 4:
+        # taking the points starting from bottom left, then bottom right, then top right and top left the points are
+        # represented as: the first point on top left, the second point on top right, the third point on bottom right
+        # and the fourth point on bottom left
         pts = np.array([mouse_pts[0], mouse_pts[1], mouse_pts[2], mouse_pts[3]], np.int32)
         cv2.polylines(img, [pts], True, (0, 255, 255), thickness=4)
         filled = True
@@ -302,32 +150,6 @@ def ask_to_confirm():
         os.remove(window_name + extension)
         filled = False
     return False
-
-
-def compute_bird_eye():
-    """
-    :return:
-    """
-
-    frame = cv2.imread('first_frame.jpg')
-    frame_prova = cv2.imread('first_frame_with_polygon.jpg')
-
-    # mapping the ROI (region of interest) into a rectangle
-    input_pts = np.float32([mouse_pts[0], mouse_pts[3], mouse_pts[2], mouse_pts[1]])
-    # output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
-    output_pts = np.float32([[width / 4, 0], [width, 0], [width * 4, width * 3], [width / 4, width * 3]])
-
-    cv2.circle(frame_prova, (width, 0), 8, 255, -1)
-    cv2.circle(frame_prova, (int(width / 4), 0), 8, 255, -1)
-    cv2.circle(frame_prova, (width, 2 * width), 8, 255, -1)
-    cv2.imshow('window', frame_prova)
-    # Compute the transformation matrix
-    M = cv2.getPerspectiveTransform(input_pts, output_pts)
-    out = cv2.warpPerspective(frame, M, (width, height * 3))
-
-    cv2.imwrite('bird_eye.jpg', out)
-
-    return M, out
 
 
 ##########################################################################

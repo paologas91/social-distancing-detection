@@ -57,3 +57,17 @@ def display_video(filename):
 
     # Closes all the frames
     cv2.destroyAllWindows()
+
+
+def get_video_properties(filename):
+    """
+    Gets the main properties of the video file
+    :param filename: The video file
+    :return: fps, width, height
+    """
+    cap = cv2.VideoCapture(filename)
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    return fps, height, width
