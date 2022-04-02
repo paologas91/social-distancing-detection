@@ -40,7 +40,6 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     shape = np.shape(xyxy)
     print("shape of xyxy: ", shape[0])
 
-
     # Calculate the centers of the bottom of the boxes
     centers = []
     for x1, y1, x2, y2 in xyxy:
@@ -54,6 +53,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     bird_eye_background = cv2.resize(bird_eye_background, (width, height))
 
     colors = ['green'] * len(bird_centers)
+
     for i in range(len(bird_centers)):
         for j in range(i + 1, len(bird_centers)):
             # Calculate distance of the centers
@@ -66,23 +66,15 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
                 x2, y2 = bird_centers[j]
 
                 print(int(x1), int(y1), int(x2), int(y2))
-                # TODO: add counter everytime the line is draw, to count how much violation are occurring
+
+                # Increments the number of violations
                 n_violations = n_violations + 1
-                font = cv2.FONT_HERSHEY_DUPLEX
-                color = (255, 0, 0)  # red
-                fontsize = 255
-                position = (10, 10)
+
+                # Draws a red line between the two persons which are violating the distance
                 bird_eye_background = cv2.line(bird_eye_background,
                                                (int(x1), int(y1 / 3)),
                                                (int(x2), int(y2 / 3)),
                                                (0, 0, 255), 2)
-                cv2.putText(img=bird_eye_background,
-                            text="n_violations",
-                            org=(50, 50),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=70,
-                            color=(255, 0, 0),
-                            thickness=2)
 
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
@@ -98,7 +90,6 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(bird_eye_background, 0)
-    # TODO: Print on the warped_flip frame, the number of people detected and stored before
     # TODO: Print the counter of violations
     warped_flip = cv2.hconcat([warped_flip, frame])
 
@@ -106,6 +97,15 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     cv2.putText(img=warped_flip,
                 text="Number of people: " + str(shape[0]),
                 org=(100, 100),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=0.5,
+                color=(255, 0, 0),
+                thickness=2)
+
+    # Display the number of violations in the frame
+    cv2.putText(img=warped_flip,
+                text="Number of violations: " + str(n_violations),
+                org=(100, 120),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5,
                 color=(255, 0, 0),
