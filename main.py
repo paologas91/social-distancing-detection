@@ -7,7 +7,7 @@ import numpy as np
 from functions import *
 
 # convert video
-filename = '4p-c1.avi'
+filename = 'campus4-c0.avi'
 convert_video(filename)
 
 # display video
