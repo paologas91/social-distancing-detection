@@ -4,6 +4,7 @@ from tkinter.filedialog import askopenfilename
 from functions import *
 from model import load_model
 from video import *
+from image import *
 from detect import detect_people_on_video
 
 
@@ -27,7 +28,13 @@ if filename != "":
     # Get video properties
     fps, height, width = get_video_properties(filename)
 
-    # recover the four points and ask to confirm the choice
+    # Recover the first frame of the selected video
+    recover_first_frame(filename)
+
+    # Draw two black stripes at the left and at the right of the first frame
+    draw_img_with_black_stripes('first_frame.jpg', width)
+
+    # Recover the four points and ask to confirm the choice
     answer = False
     while not answer:
         pts = recover_four_points(filename, width)

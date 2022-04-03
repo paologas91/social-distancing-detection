@@ -28,7 +28,7 @@ def compute_bird_eye(height, width, pts):
     cv2.circle(img_with_polygon, (width, 0), 8, 255, -1)
     cv2.circle(img_with_polygon, (int(width / 4), 0), 8, 255, -1)
     cv2.circle(img_with_polygon, (width, 2 * width), 8, 255, -1)
-    cv2.imshow('window', img_with_polygon)
+
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
     out = cv2.warpPerspective(img, filter_m, (width, height * 3))

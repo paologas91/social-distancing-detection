@@ -71,3 +71,19 @@ def get_video_properties(filename):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     return fps, height, width
+
+
+def recover_first_frame(filename):
+    """
+    Recovers the first frame of the selected video and saves it in the project path
+    :param filename: The path of the video
+    :return:
+    """
+    cap = cv2.VideoCapture(filename)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite('first_frame.jpg', frame)
+            break
+    cap.release()

@@ -22,7 +22,7 @@ def compute_distance(point_1, point_2):
     return np.linalg.norm([x1 - x2, y1 - y2])
 
 
-def recover_four_points(filename, width):
+def recover_four_points(path, width):
     """
     Function to recover the four points of the polygon drawn on the image
     :param filename: The video
@@ -32,25 +32,15 @@ def recover_four_points(filename, width):
 
     global mouse_pts, img, filled
 
+    # Takes only the name of the file without its extension
     window_name = 'first_frame'
-    extension = '.jpg'
 
-    cap = cv2.VideoCapture(filename)
+    # Opens the window to start drawing the 4 points
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, draw_lines)
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            cv2.imwrite(window_name + extension, frame)
-            break
-    cap.release()
-
-    img = cv2.imread(window_name + extension)
-    color = (0, 0, 0)
-    left, right = [int(width / 2)] * 2
-    img = cv2.copyMakeBorder(img, 0, 0, left, right, cv2.BORDER_CONSTANT, value=color)
-    cv2.imwrite(window_name + '_with_black_stripes' + extension, img)
+    # Recovers and saves into the project path the first frame of the selected video
+    img = cv2.imread('first_frame_with_black_stripes.jpg')
 
     while not filled:
         # if we are drawing show preview, otherwise the image
@@ -62,7 +52,7 @@ def recover_four_points(filename, width):
         if k == ord('q'):
             break
 
-    cv2.imwrite(window_name + '_with_polygon' + extension, img)
+    cv2.imwrite(window_name + '_with_polygon.jpg', img)
     cv2.destroyWindow(window_name)
     return mouse_pts
 
