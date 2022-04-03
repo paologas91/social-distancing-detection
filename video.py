@@ -19,7 +19,8 @@ def convert_video(path):
         os.remove(compressed_path)
 
     # Convert video in a specific format
-    os.system(f"ffmpeg -i {path} -vcodec libx264 {compressed_path}")
+    os.system(f"ffmpeg -i {path} -vcodec libx264 -vf scale=500:-2 {compressed_path}")
+    return compressed_path
 
 
 def display_video(filename):

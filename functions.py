@@ -22,14 +22,11 @@ def compute_distance(point_1, point_2):
     return np.linalg.norm([x1 - x2, y1 - y2])
 
 
-def recover_four_points(path, width):
+def recover_four_points():
     """
     Function to recover the four points of the polygon drawn on the image
-    :param filename: The video
-    :param width: The width of the image
     :return: The four points
     """
-
     global mouse_pts, img, filled
 
     # Takes only the name of the file without its extension

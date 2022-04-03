@@ -2,6 +2,12 @@ import cv2
 
 
 def draw_img_with_black_stripes(filename, width):
+    """
+
+    :param filename:
+    :param width:
+    :return:
+    """
     img = cv2.imread(filename)
     color = (0, 0, 0)
     left, right = [int(width / 2)] * 2

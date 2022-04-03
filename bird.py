@@ -20,10 +20,8 @@ def compute_bird_eye(height, width, pts):
 
     # output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
     output_pts = np.float32([[width / 4, 0], [width, 0], [width * 4, width * 3], [width / 4, width * 3]])
-    print("input_pts: ", input_pts)
-    print("output_pts: ", output_pts)
-    print("height of first_frame.jpg: ", img.shape[0])
-    print("width of first_frame.jpg: ", img.shape[1])
+    print("\ninput_pts: \n", input_pts)
+    print("output_pts: \n", output_pts)
 
     cv2.circle(img_with_polygon, (width, 0), 8, 255, -1)
     cv2.circle(img_with_polygon, (int(width / 4), 0), 8, 255, -1)

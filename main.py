@@ -17,19 +17,19 @@ filename = askopenfilename(title='Select a video file...', filetypes=[("all vide
 
 if filename != "":
     # convert video
-    convert_video(filename)
+    filename_compressed = convert_video(filename)
 
     # display video
-    display_video(filename)
+    display_video(filename_compressed)
 
     # Load model
     model = load_model('x')
 
     # Get video properties
-    fps, height, width = get_video_properties(filename)
+    fps, height, width = get_video_properties(filename_compressed)
 
     # Recover the first frame of the selected video
-    recover_first_frame(filename)
+    recover_first_frame(filename_compressed)
 
     # Draw two black stripes at the left and at the right of the first frame
     draw_img_with_black_stripes('first_frame.jpg', width)
@@ -37,7 +37,8 @@ if filename != "":
     # Recover the four points and ask to confirm the choice
     answer = False
     while not answer:
-        pts = recover_four_points(filename, width)
+        pts = recover_four_points()
+        print("pts: \n", pts)
         answer = ask_to_confirm()
 
     # compute the top-down perspective (bird's eye view)
@@ -46,7 +47,7 @@ if filename != "":
 
     # detect people and compute distances among people
     # detect_people_on_video(model, filename, confidence=0.5)
-    detect_people_on_video(model, filename, fps, height, width, pts, confidence=0.5)
+    detect_people_on_video(model, filename_compressed, fps, height, width, pts, confidence=0.5)
 else:
     sys.exit()
 

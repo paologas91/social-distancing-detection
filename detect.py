@@ -38,7 +38,6 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
 
     # Number of rows of xyxy correspond to the number of person inside each frame
     shape = np.shape(xyxy)
-    print("shape of xyxy: ", shape[0])
 
     # Calculate the centers of the bottom of the boxes
     centers = []
@@ -90,6 +89,8 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     warped_flip = cv2.flip(bird_eye_background, 0)
+
+    # Concat the black bird-eye image with the frame
     warped_flip = cv2.hconcat([warped_flip, frame])
 
     # Display the number of people in the frame
