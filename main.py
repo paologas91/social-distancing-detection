@@ -20,7 +20,7 @@ if filename != "":
     filename_compressed = convert_video(filename)
 
     # display video
-    display_video(filename_compressed)
+    #display_video(filename_compressed)
 
     # Load model
     model = load_model('x')
@@ -32,7 +32,7 @@ if filename != "":
     recover_first_frame(filename_compressed)
 
     # Draw two black stripes at the left and at the right of the first frame
-    draw_img_with_black_stripes('first_frame.jpg', width)
+    #draw_img_with_black_stripes('first_frame.jpg', width)
 
     # Recover the four points and ask to confirm the choice
     answer = False

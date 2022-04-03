@@ -37,8 +37,8 @@ def recover_four_points():
     cv2.setMouseCallback(window_name, draw_lines)
 
     # Recovers and saves into the project path the first frame of the selected video
-    img = cv2.imread('first_frame_with_black_stripes.jpg')
-
+    #img = cv2.imread('first_frame_with_black_stripes.jpg')
+    img = cv2.imread('first_frame.jpg')
     while not filled:
         # if we are drawing show preview, otherwise the image
         if preview is None:
