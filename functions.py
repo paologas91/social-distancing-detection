@@ -13,8 +13,8 @@ filled = False
 def compute_distance(point_1, point_2):
     """
     Calculate usual distance
-    :param point1: First point
-    :param point2: Second point
+    :param point_1: First point
+    :param point_2: Second point
     :return: The distance
     """
     x1, y1 = point_1
@@ -134,9 +134,10 @@ def draw_lines(event, x, y, flags, param):
 
 def ask_to_confirm():
     """
+
     :return:
     """
-    global filled
+    global filled, mouse_pts
     window_name = 'first_frame_with_polygon'
     extension = '.jpg'
     first_frame = cv2.imread(window_name + extension)
@@ -151,7 +152,8 @@ def ask_to_confirm():
         cv2.destroyWindow(window_name)
         os.remove(window_name + extension)
         filled = False
-    return False
+        mouse_pts = []
+        return False
 
 
 ##########################################################################
