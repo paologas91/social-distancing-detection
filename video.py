@@ -88,3 +88,9 @@ def recover_first_frame(filename):
             cv2.imwrite('first_frame.jpg', frame)
             break
     cap.release()
+
+def saveVideo(filename):
+    """
+
+    :return:
+    """
