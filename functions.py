@@ -11,10 +11,11 @@ filled = False
 
 
 def compute_distance(point_1, point_2):
-    """Calculate usual distance.
-    param point1:
-    param point2:
-    return:
+    """
+    Calculate usual distance
+    :param point1: First point
+    :param point2: Second point
+    :return: The distance
     """
     x1, y1 = point_1
     x2, y2 = point_2
@@ -23,10 +24,10 @@ def compute_distance(point_1, point_2):
 
 def recover_four_points(filename, width):
     """
-
-    :param filename:
-    :param width:
-    :return:
+    Function to recover the four points of the polygon drawn on the image
+    :param filename: The video
+    :param width: The width of the image
+    :return: The four points
     """
 
     global mouse_pts, img, filled
@@ -68,7 +69,7 @@ def recover_four_points(filename, width):
 
 def draw_lines(event, x, y, flags, param):
     """
-
+    Function to draw the four lines of the polygon
     :param event:
     :param x:
     :param y:

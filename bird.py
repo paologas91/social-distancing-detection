@@ -4,10 +4,11 @@ import numpy as np
 
 def compute_bird_eye(height, width, pts):
     """
-
+    Computes the bird's eye view of the selected area of the original image bounded by the four points of the polygon
+    drawn by the user
     :param height:
     :param width:
-    :param: pts:
+    :param pts: The four points of the polygon drawn by the user
     :return:
     """
     img = cv2.imread('first_frame.jpg')
@@ -19,10 +20,10 @@ def compute_bird_eye(height, width, pts):
 
     # output_pts = np.float32([[0, 0], [width, 0], [width, 3 * width], [0, 3 * width]])
     output_pts = np.float32([[width / 4, 0], [width, 0], [width * 4, width * 3], [width / 4, width * 3]])
-    print("input: ", input_pts)
-    print("output: ", output_pts)
-    print("height: ", img.shape[0])
-    print("width: ", img.shape[1])
+    print("input_pts: ", input_pts)
+    print("output_pts: ", output_pts)
+    print("height of first_frame.jpg: ", img.shape[0])
+    print("width of first_frame.jpg: ", img.shape[1])
 
     cv2.circle(img_with_polygon, (width, 0), 8, 255, -1)
     cv2.circle(img_with_polygon, (int(width / 4), 0), 8, 255, -1)
@@ -39,7 +40,7 @@ def compute_bird_eye(height, width, pts):
 
 def convert_to_bird(centers, filter_m):
     """
-    Apply the perpective to the bird's-eye view.
+    Apply the perspective to the bird's-eye view.
     :param centers:
     :param filter_m:
     return:
