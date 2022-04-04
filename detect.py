@@ -114,7 +114,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     return centers, bird_centers, warped_flip
 
 
-def detect_people_on_video(model, filename, fps, height, width, pts, confidence, distance=80):
+def detect_people_on_video(model, filename, fps, height, width, pts,distance, confidence):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:

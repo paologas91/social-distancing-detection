@@ -119,16 +119,16 @@ def draw_lines(event, x, y, flags, param):
         filled = True
 
 
-def ask_to_confirm():
+def ask_to_confirm(window_name):
     """
 
     :return:
     """
     global filled, mouse_pts
-    window_name = 'first_frame_with_polygon'
-    extension = '.jpg'
-    first_frame = cv2.imread(window_name + extension)
-    cv2.imshow(window_name, first_frame)
+
+    frame = cv2.imread(window_name)
+    print(window_name)
+    cv2.imshow(window_name, frame)
     cv2.waitKey(1)
     print('Do you want to confirm the choice? (y/n)')
     answer = input()
@@ -137,10 +137,11 @@ def ask_to_confirm():
         return True
     else:
         cv2.destroyWindow(window_name)
-        os.remove(window_name + extension)
+        os.remove(window_name)
         filled = False
         mouse_pts = []
         return False
+
 
 
 ##########################################################################
@@ -209,7 +210,7 @@ def detect_people_on_frame(model, img, confidence, distance):
     return img
 
 
-def detect_people_on_video(model, filename, confidence, distance=90):
+def detect_people_on_video2(model, filename, confidence, distance=90):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:

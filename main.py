@@ -1,6 +1,8 @@
 import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+
+from distance import get_distance_from_video
 from functions import *
 from model import load_model
 from video import *
@@ -16,6 +18,11 @@ filename = askopenfilename(title='Select a video file...', filetypes=[("all vide
                                                                       ])
 
 if filename != "":
+
+
+
+
+
     # convert video
     filename_compressed = convert_video(filename)
 
@@ -39,15 +46,20 @@ if filename != "":
     while not answer:
         pts = recover_four_points()
         print("pts: \n", pts)
-        answer = ask_to_confirm()
+        windowName='first_frame_with_polygon.jpg'
+        answer = ask_to_confirm(windowName)
 
     # compute the top-down perspective (bird's eye view)
     # compute_bird_eye()
 
 
+    # take distance
+    distance = get_distance_from_video(filename)
+    print("distance:", distance)
+
     # detect people and compute distances among people
-    # detect_people_on_video(model, filename, confidence=0.5)
-    detect_people_on_video(model, filename_compressed, fps, height, width, pts, confidence=0.5)
+    #detect_people_on_video2(model, filename, confidence=0.5)
+    detect_people_on_video(model, filename_compressed, fps, height, width, pts, distance,confidence=0.5,)
 else:
     sys.exit()
 
