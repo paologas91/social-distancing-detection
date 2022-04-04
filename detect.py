@@ -46,6 +46,10 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         centers.append(center)
 
     filter_m, warped = compute_bird_eye(height, width, pts)
+    #convert_to_bird_distance = convert_to_bird(distance, filter_m)
+    #distance_bird = compute_distance(convert_to_bird_distance [0], convert_to_bird_distance [1])
+
+
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, filter_m)
@@ -57,6 +61,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         for j in range(i + 1, len(bird_centers)):
             # Calculate distance of the centers
             dist = compute_distance(bird_centers[i], bird_centers[j])
+
             if dist < distance:
                 # If dist < distance, boxes are red and a line is drawn
                 colors[i] = 'red'

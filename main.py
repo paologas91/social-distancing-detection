@@ -54,12 +54,14 @@ if filename != "":
 
 
     # take distance
-    distance = get_distance_from_video(filename)
-    print("distance:", distance)
+    #distance = get_distance_from_video(filename)
+    #print("distance:", distance)
 
     # detect people and compute distances among people
     #detect_people_on_video2(model, filename, confidence=0.5)
-    detect_people_on_video(model, filename_compressed, fps, height, width, pts, distance,confidence=0.5,)
+    distance=(input("insert de number of metro of distance:"))
+    distance=int(distance)*100
+    detect_people_on_video(model, filename_compressed, fps, height, width, pts, distance,confidence=0.5)
 else:
     sys.exit()
 

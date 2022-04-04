@@ -44,9 +44,9 @@ def get_distance_from_video(filename):
         cap.release()
         answer = ask_to_confirm('train_frame.jpg')
     distance_point=recover_two_points()
-    distance=compute_distance(distance_point[0],distance_point[1])
-    print(distance_point)
-    return distance
+    #distance=compute_distance(distance_point[0],distance_point[1])
+
+    return distance_point
 
 
 
