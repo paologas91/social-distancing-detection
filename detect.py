@@ -25,7 +25,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     results = model([frame[:, :, ::-1]])
 
     # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height * 3, width, 3), np.uint8)
+    bird_eye_background = np.zeros((height, width, 3), np.uint8)
     bird_eye_background[:, :, :] = 0
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
@@ -100,6 +100,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
 
     # Concat the black bird-eye image with the frame
     warped_flip = cv2.hconcat([warped_flip, frame])
+
 
     # Display the number of people in the frame
     cv2.putText(img=warped_flip,

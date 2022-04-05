@@ -11,15 +11,15 @@ def compute_bird_eye(height,width,pts):
     :param pts: The four points of the polygon drawn by the user
     :return:
     """
-    img = cv2.imread('first_frame.jpg')
+    img = cv2.imread('first_frame_with_black_stripes.jpg')
     print(img.shape)
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
     input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
 
     #output_pts = np.float32([[width / 4, 0], [width/4,width*3], [width * 4, width * 3], [width,0]])
-    output_pts = np.float32([[0,0],[width,0],[width,height*2],[0,height*2]])
-
+    #output_pts = np.float32([[0,0],[width,0],[width,height*2],[0,height*2]])
+    output_pts = np.float32([[0, 0], [width, 0], [width, height * 2], [0, height * 2]])
     #output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
 
     print("\ninput_pts: \n", input_pts)

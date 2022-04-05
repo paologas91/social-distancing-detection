@@ -39,7 +39,7 @@ if filename != "":
     recover_first_frame(filename_compressed)
 
     # Draw two black stripes at the left and at the right of the first frame
-    #draw_img_with_black_stripes('first_frame.jpg', width)
+    draw_img_with_black_stripes('first_frame.jpg', width)
 
     # Recover the four points and ask to confirm the choice
     answer = False
@@ -59,7 +59,7 @@ if filename != "":
 
     # detect people and compute distances among people
     #detect_people_on_video2(model, filename, confidence=0.5)
-    distance=(input("insert de number of metro of distance:"))
+    distance=(input("insert the distance in metro:"))
     distance=int(distance)*100
     detect_people_on_video(model, filename_compressed, fps, height, width, pts, distance,confidence=0.5)
 else:
