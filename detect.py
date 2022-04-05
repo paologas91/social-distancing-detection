@@ -5,6 +5,9 @@ from functions import compute_distance
 from bird import convert_to_bird, compute_bird_eye
 import os
 
+from video import saveVideo
+
+
 def detect_people_on_frame(model, frame, confidence, distance, height, width, pts):
     """
     Detect people on a frame and draw the rectangles and lines.
@@ -141,21 +144,10 @@ def detect_people_on_video(model, filename, fps, height, width, pts,distance, co
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
 
-    count=0
-    filename="experiment"+str(count)+".avi"
-    folder="./experiment/"
-    path=folder+filename
-    if not os.path.exists(folder):
-        print("ciao")
-        os.makedirs(folder)
 
 
-    while(os.path.exists(path)):
-        print("ciao")
-        count=count+1
-        path = folder+"experiment" + str(count) + ".avi"
-    print(filename)
-    out = cv2.VideoWriter(path, fourcc, fps, (width * 2, height))
+    out=saveVideo(fourcc,fps,width,height)
+
 
     # Iterate through frames and detect people
     vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

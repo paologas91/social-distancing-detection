@@ -89,8 +89,22 @@ def recover_first_frame(filename):
             break
     cap.release()
 
-def saveVideo(filename):
+def saveVideo(fourcc, fps,width,height):
     """
 
     :return:
     """
+    count = 0
+    filename = "experiment" + str(count) + ".avi"
+    folder = "./experiment/"
+    path = folder + filename
+    if not os.path.exists(folder):
+        print("ciao")
+        os.makedirs(folder)
+    while (os.path.exists(path)):
+        print("ciao")
+        count = count + 1
+        path = folder + "experiment" + str(count) + ".avi"
+    print(filename)
+    out = cv2.VideoWriter(path, fourcc, fps, (width * 2, height))
+    return out

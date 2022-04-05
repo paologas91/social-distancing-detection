@@ -19,12 +19,15 @@ def compute_bird_eye(height,width,pts):
 
     #output_pts = np.float32([[width / 4, 0], [width/4,width*3], [width * 4, width * 3], [width,0]])
     output_pts = np.float32([[0,0],[width,0],[width,height*2],[0,height*2]])
+
+    #output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
+
     print("\ninput_pts: \n", input_pts)
     print("output_pts: \n", output_pts)
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
-    out = cv2.warpPerspective(img, filter_m, (img.shape[0],img.shape[1]))
+    out = cv2.warpPerspective(img, filter_m, (width,height))
 
    # cv2.imshow("frame",out)
 
