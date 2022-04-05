@@ -101,19 +101,19 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     # Display the number of people in the frame
     cv2.putText(img=warped_flip,
                 text="Number of people: " + str(shape[0]),
-                org=(370, 20),
+                org=(335, 20),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5,
-                color=(255, 0, 0),
+                color=(255, 255, 255),
                 thickness=2)
 
     # Display the number of violations in the frame
     cv2.putText(img=warped_flip,
                 text="Number of violations: " + str(n_violations),
-                org=(370, 40),
+                org=(335, 40),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=0.5,
-                color=(255, 0, 0),
+                color=(255, 255, 255),
                 thickness=2)
 
     return centers, bird_centers, warped_flip
