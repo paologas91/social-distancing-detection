@@ -27,7 +27,7 @@ if filename != "":
     filename_compressed = convert_video(filename)
 
     # display video
-    #display_video(filename_compressed)
+    display_video(filename_compressed)
 
     # Load model
     model = load_model('x')
@@ -53,15 +53,13 @@ if filename != "":
     # compute_bird_eye()
 
 
-    # take distance
-    #distance = get_distance_from_video(filename)
-    #print("distance:", distance)
+
 
     # detect people and compute distances among people
     #detect_people_on_video2(model, filename, confidence=0.5)
-    distance=(input("insert the distance in metro:"))
-    distance=int(distance)*100
-    detect_people_on_video(model, filename_compressed, fps, height, width, pts, distance,confidence=0.5)
+    #distance=(input("insert the distance in metro:"))
+    #distance=int(distance)*100
+    detect_people_on_video(model, filename_compressed, fps, height, width, pts,confidence=0.5)
 else:
     sys.exit()
 

@@ -2,6 +2,8 @@ import csv
 
 import cv2
 import numpy as np
+
+from bird import convert_to_bird
 from functions import compute_distance, ask_to_confirm
 
 img = None
@@ -41,14 +43,17 @@ def get_distance_from_video(filename):
             else:
                 break
         # When everything done, release the video capture object
-        cap.release()
-        answer = ask_to_confirm('train_frame.jpg')
-    distance_points=recover_two_points()
-    #distance=compute_distance(distance_point[0],distance_point[1])
 
+        distance_points = recover_two_points()
+        cap.release()
+        answer = ask_to_confirm('train_frame_with_line.jpg')
     return distance_points
 
-
+def compute_distance_from_set_point(filename,filter_m):
+    distance_points = get_distance_from_video(filename)
+    convert_to_bird_distance = convert_to_bird(distance_points, filter_m)
+    distance_bird = compute_distance(convert_to_bird_distance[0], convert_to_bird_distance[1])
+    return distance_bird
 
 
 

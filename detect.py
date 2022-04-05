@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 from tqdm import tqdm
+
+from distance import get_distance_from_video, compute_distance_from_set_point
 from functions import compute_distance
 from bird import convert_to_bird, compute_bird_eye
 import os
@@ -8,7 +10,7 @@ import os
 from video import saveVideo
 
 
-def detect_people_on_frame(model, frame, confidence, distance, height, width, pts):
+def detect_people_on_frame(model, frame, confidence, height, width, pts,filename,frame_number,distance):
     """
     Detect people on a frame and draw the rectangles and lines.
     :param model:
@@ -25,7 +27,7 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
     results = model([frame[:, :, ::-1]])
 
     # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height, width, 3), np.uint8)
+    bird_eye_background = np.zeros((height, width*3, 3), np.uint8)
     bird_eye_background[:, :, :] = 0
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
@@ -49,10 +51,8 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
         centers.append(center)
 
     filter_m, warped = compute_bird_eye(height, width, pts)
-    #convert_to_bird_distance = convert_to_bird(distance, filter_m)
-    #distance_bird = compute_distance(convert_to_bird_distance [0], convert_to_bird_distance [1])
-
-
+    if frame_number-1==0:
+        distance=compute_distance_from_set_point(filename,filter_m)
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, filter_m)
@@ -120,10 +120,10 @@ def detect_people_on_frame(model, frame, confidence, distance, height, width, pt
                 color=(255, 255, 255),
                 thickness=2)
 
-    return centers, bird_centers, warped_flip
+    return centers, bird_centers, warped_flip,distance
 
 
-def detect_people_on_video(model, filename, fps, height, width, pts,distance, confidence):
+def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
     """
     Detect people on a video and draw the rectangles and lines.
     :param model:
@@ -140,7 +140,7 @@ def detect_people_on_video(model, filename, fps, height, width, pts,distance, co
     # Capture video
     cap = cv2.VideoCapture(filename)
     frame_number = 0
-
+    distance=0
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
@@ -159,13 +159,12 @@ def detect_people_on_video(model, filename, fps, height, width, pts,distance, co
             # If it's ok
             if ret:
                 frame_number = frame_number + 1
-                centers, bird_centers, frame = detect_people_on_frame(model,
+                centers, bird_centers, frame,distance = detect_people_on_frame(model,
                                                                       frame,
                                                                       confidence,
-                                                                      distance,
-                                                                      height,
+                                                                     height,
                                                                       width,
-                                                                      pts)
+                                                                      pts,filename,frame_number,distance)
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)

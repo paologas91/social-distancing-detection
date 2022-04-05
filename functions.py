@@ -136,10 +136,11 @@ def ask_to_confirm(window_name):
         cv2.destroyWindow(window_name)
         return True
     else:
-        cv2.destroyWindow(window_name)
-        os.remove(window_name)
+
         filled = False
         mouse_pts = []
+        cv2.destroyWindow(window_name)
+        os.remove(window_name)
         return False
 
 
