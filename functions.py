@@ -5,6 +5,7 @@ import os
 
 img = None
 mouse_pts = []
+distance_pts = []
 preview = None
 initialPoint = (-1, -1)
 filled = False
@@ -27,7 +28,7 @@ def recover_four_points():
     Function to recover the four points of the polygon drawn on the image
     :return: The four points
     """
-    global mouse_pts, img, filled
+    global distance_pts, mouse_pts, img, filled
 
     # Takes only the name of the file without its extension
     window_name = 'first_frame'
@@ -38,7 +39,7 @@ def recover_four_points():
 
     # Recovers and saves into the project path the first frame of the selected video
     img = cv2.imread('first_frame_with_black_stripes.jpg')
-    #img = cv2.imread('first_frame.jpg')
+    # img = cv2.imread('first_frame.jpg')
     while not filled:
         # if we are drawing show preview, otherwise the image
         if preview is None:
@@ -64,7 +65,7 @@ def draw_lines(event, x, y, flags, param):
     :param param:
     :return:
     """
-    global initialPoint, preview, mouse_pts, filled
+    global initialPoint, preview, distance_pts ,mouse_pts, filled
 
     if len(mouse_pts) == 0:
 
@@ -124,7 +125,7 @@ def ask_to_confirm(window_name):
 
     :return:
     """
-    global filled, mouse_pts
+    global filled, mouse_pts, distance_pts
 
     frame = cv2.imread(window_name)
     print(window_name)
@@ -133,16 +134,29 @@ def ask_to_confirm(window_name):
     print('Do you want to confirm the choice? (y/n)')
     answer = input()
     if answer == 'y' or answer == 'Y':
+        print('YEESSSSSSSSSSSSSS')
+        print('mouse pts = ', mouse_pts)
+        print('distance pts = ', distance_pts)
+        print('filled = ', filled)
         cv2.destroyWindow(window_name)
         return True
     else:
-
         filled = False
-        mouse_pts = []
+        if window_name == 'first_frame_with_polygon.jpg':
+            mouse_pts = []
+
+        elif window_name == 'train_frame_with_line.jpg':
+            distance_pts = []
+            print('distance pts = ', distance_pts)
+
+        print('NOOOOOOOOOOOOOOOOOOOOOOO')
+        print('mouse pts = ', mouse_pts)
+        print('distance pts = ', distance_pts)
+        print('filled = ', filled)
+
         cv2.destroyWindow(window_name)
         os.remove(window_name)
         return False
-
 
 
 ##########################################################################

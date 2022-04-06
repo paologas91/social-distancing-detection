@@ -2,13 +2,12 @@ import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-from distance import get_distance_from_video
-from functions import *
-from model import load_model
+from distance import *
+from functions import recover_four_points, ask_to_confirm, mouse_pts, distance_pts
+from model import *
 from video import *
 from image import *
-from detect import detect_people_on_video
-
+from detect import *
 
 # select and open video file
 Tk().withdraw()
@@ -19,10 +18,6 @@ filename = askopenfilename(title='Select a video file...', filetypes=[("all vide
 
 if filename != "":
 
-
-
-
-
     # convert video
     filename_compressed = convert_video(filename)
 
@@ -30,7 +25,7 @@ if filename != "":
     display_video(filename_compressed)
 
     # Load model
-    model = load_model('x')
+    model = load_model('s')
 
     # Get video properties
     fps, height, width = get_video_properties(filename_compressed)
@@ -41,25 +36,32 @@ if filename != "":
     # Draw two black stripes at the left and at the right of the first frame
     draw_img_with_black_stripes('first_frame.jpg', width)
 
-    # Recover the four points and ask to confirm the choice
+    # Recover the ROI and ask to confirm the choice
     answer = False
     while not answer:
-        pts = recover_four_points()
-        print("pts: \n", pts)
-        windowName='first_frame_with_polygon.jpg'
-        answer = ask_to_confirm(windowName)
+        mouse_pts = recover_four_points()
+        print("mouse pts: \n", mouse_pts)
+        window_name = 'first_frame_with_polygon.jpg'
+        answer = ask_to_confirm(window_name)
+
+    # Recover two points and ask to confirm the choice
+    answer = False
+    while not answer:
+        choose_frame_to_draw_distance(filename_compressed)
+        distance_pts = recover_two_points()
+        print("distance pts: \n", distance_pts)
+        window_name = 'train_frame_with_line.jpg'
+        answer = ask_to_confirm(window_name)
 
     # compute the top-down perspective (bird's eye view)
     # compute_bird_eye()
 
-
-
-
     # detect people and compute distances among people
-    #detect_people_on_video2(model, filename, confidence=0.5)
-    #distance=(input("insert the distance in metro:"))
-    #distance=int(distance)*100
-    detect_people_on_video(model, filename_compressed, fps, height, width, pts,confidence=0.5)
+    # detect_people_on_video2(model, filename, confidence=0.5)
+    # distance=(input("insert the distance in metro:"))
+    # distance=int(distance)*100
+
+    detect_people_on_video(model, filename_compressed, fps, height, width, mouse_pts, confidence=0.5)
+
 else:
     sys.exit()
-

@@ -67,6 +67,7 @@ def get_video_properties(filename):
     :return: fps, width, height
     """
     cap = cv2.VideoCapture(filename)
+
     # Get video properties
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -89,7 +90,8 @@ def recover_first_frame(filename):
             break
     cap.release()
 
-def saveVideo(fourcc, fps,width,height):
+
+def saveVideo(fourcc, fps, width, height):
     """
 
     :return:
@@ -99,10 +101,8 @@ def saveVideo(fourcc, fps,width,height):
     folder = "./experiment/"
     path = folder + filename
     if not os.path.exists(folder):
-        print("ciao")
         os.makedirs(folder)
-    while (os.path.exists(path)):
-        print("ciao")
+    while os.path.exists(path):
         count = count + 1
         path = folder + "experiment" + str(count) + ".avi"
     print(filename)
