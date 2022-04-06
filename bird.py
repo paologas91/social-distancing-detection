@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def compute_bird_eye(height,width,pts):
+def compute_bird_eye(pts):
     """
     Computes the bird's eye view of the selected area of the original image bounded by the four points of the polygon
     drawn by the user
@@ -11,14 +11,16 @@ def compute_bird_eye(height,width,pts):
     :param pts: The four points of the polygon drawn by the user
     :return:
     """
-    img = cv2.imread('first_frame.jpg')
+    img = cv2.imread('first_frame_with_black_stripes.jpg')
     print(img.shape)
+    height = img.shape[0]
+    width = img.shape[1]
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
-    input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
+    input_pts = np.float32([pts[0], pts[1], pts[3], pts[2]])
 
     #output_pts = np.float32([[width / 4, 0], [width/4,width*3], [width * 4, width * 3], [width,0]])
-    output_pts = np.float32([[0, 0], [width, 0], [width, height*2], [0, height*2]])
+    output_pts = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
     #output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
 
     print("\ninput_pts: \n", input_pts)
@@ -26,7 +28,7 @@ def compute_bird_eye(height,width,pts):
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
-    out = cv2.warpPerspective(img, filter_m, (width,height))
+    out = cv2.warpPerspective(img, filter_m, (width, height))
 
    # cv2.imshow("frame",out)
 
