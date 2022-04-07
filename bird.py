@@ -18,7 +18,7 @@ def compute_bird_eye(pts):
     input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
 
 
-    #output_pts = np.float32([[pts[0][0], pts[3][1]], [pts[1][0], pts[2][1]], [pts[1][0], 0], [pts[0][0], 0]])
+    # output_pts = np.float32([[pts[0][0], pts[3][1]], [pts[1][0], pts[2][1]], [pts[1][0], 0], [pts[0][0], 0]])
     output_pts = np.float32([[pts[0][0], height], [pts[1][0], height], [pts[1][0], 0], [pts[0][0], 0]])
     # output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
 

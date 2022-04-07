@@ -8,6 +8,7 @@ preview = None
 distance_pts = []
 initialPoint = (-1, -1)
 filled = False
+meters = 0.0
 
 
 def choose_frame_to_draw_distance(filename):
@@ -43,10 +44,13 @@ def choose_frame_to_draw_distance(filename):
     cap.release()
 
 
-def compute_distance_from_set_point(filter_m):
+def compute_bird_distance(filter_m):
     convert_to_bird_distance = convert_to_bird(distance_pts, filter_m)
     distance_bird = compute_distance(convert_to_bird_distance[0], convert_to_bird_distance[1])
-    return distance_bird
+    pixel_in_meters = float(distance_bird) / float(meters)
+    print("distance bird: ", distance_bird)
+    print(pixel_in_meters)
+    return pixel_in_meters
 
 
 def recover_two_points():
@@ -79,6 +83,14 @@ def recover_two_points():
     cv2.imwrite(window_name + '_with_line.jpg', img)
     cv2.destroyWindow(window_name)
     return distance_pts
+
+
+def insert_distance_in_meters():
+    global meters
+
+    print("Insert the value of the distance in meters: ")
+    meters = input()
+    print(meters)
 
 
 def draw_distance(event, x, y, flags, param):

@@ -3,7 +3,7 @@ import numpy as np
 from tqdm import tqdm
 
 from bird import convert_to_bird, compute_bird_eye
-from distance import compute_distance_from_set_point
+from distance import compute_bird_distance
 from functions import compute_distance
 from video import saveVideo
 
@@ -58,8 +58,9 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
     filter_m, warped = compute_bird_eye(pts)
 
     if frame_number == 1:
-        distance = compute_distance_from_set_point(filter_m)
+        distance = compute_bird_distance(filter_m)
         print('distance =', distance)
+
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, filter_m)

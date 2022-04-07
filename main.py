@@ -50,6 +50,7 @@ if filename != "":
     while not answer:
         choose_frame_to_draw_distance(filename_compressed)
         distance_pts = recover_two_points()
+        insert_distance_in_meters()
         print("MAIN distance pts: ", distance_pts)
         window_name = 'train_frame_with_line.jpg'
         answer = ask_to_confirm(window_name)
