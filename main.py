@@ -38,6 +38,14 @@ if filename != "":
     # draw_img_with_black_stripes('first_frame.jpg', width)
 
     # Recover two points and ask to confirm the choice
+    # Recover the ROI and ask to confirm the choice
+    answer = False
+    while not answer:
+        mouse_pts = recover_four_points()
+        print("MAIN mouse pts: ", mouse_pts)
+        window_name = 'first_frame_with_polygon.jpg'
+        answer = ask_to_confirm(window_name)
+
     answer = False
     while not answer:
         choose_frame_to_draw_distance(filename_compressed)
@@ -46,13 +54,6 @@ if filename != "":
         window_name = 'train_frame_with_line.jpg'
         answer = ask_to_confirm(window_name)
 
-    # Recover the ROI and ask to confirm the choice
-    answer = False
-    while not answer:
-        mouse_pts = recover_four_points()
-        print("MAIN mouse pts: ", mouse_pts)
-        window_name = 'first_frame_with_polygon.jpg'
-        answer = ask_to_confirm(window_name)
 
     # compute the top-down perspective (bird's eye view)
     # compute_bird_eye()

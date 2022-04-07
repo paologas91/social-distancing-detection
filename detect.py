@@ -31,7 +31,7 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
     width_1 = img.shape[1]
 
     # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height_1*3, width_1, 3), np.uint8)
+    bird_eye_background = np.zeros((height_1, width_1, 3), np.uint8)
     print("dimensioni bird_eye_background: ", bird_eye_background.shape)
     bird_eye_background[:, :, :] = 0
 
@@ -86,9 +86,9 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 n_violations = n_violations + 1
 
                 # Draws a red line between the two persons which are violating the distance
-                bird_eye_background = cv2.line(bird_eye_background,
-                                               (int(x1), int(y1/3)),
-                                               (int(x2), int(y2/3)),
+                warped= cv2.line(warped,
+                                               (int(x1), int(y1)),
+                                               (int(x2), int(y2)),
                                                (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
@@ -99,19 +99,20 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
 
         x, y = bird_center
         x = int(x)
-        y = int(y/3)
+        y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
-        bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
-
-    # warped_flip = cv2.flip(bird_eye_background, 0)
+        #bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
+        warped = cv2.circle(warped, (x, y), 8, color, -1)
+    warped_flip = cv2.flip(warped, 0)
 
     # Concat the black bird-eye image with the frame
-    bird_eye_background = cv2.resize(bird_eye_background, (width, height))
-    bird_eye_background = cv2.hconcat([bird_eye_background, frame])
+    warped_flip = cv2.resize(warped_flip, (width, height))
+    warped_flip = cv2.hconcat([warped_flip, frame])
+
 
     # Display the number of people in the frame
-    cv2.putText(img=bird_eye_background,
+    cv2.putText(img=warped_flip,
                 text="Number of people: " + str(shape[0]),
                 org=(335, 20),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
@@ -120,7 +121,7 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 thickness=2)
 
     # Display the number of violations in the frame
-    cv2.putText(img=bird_eye_background,
+    cv2.putText(img=warped_flip,
                 text="Number of violations: " + str(n_violations),
                 org=(335, 40),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
@@ -128,7 +129,7 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 color=(255, 255, 255),
                 thickness=2)
 
-    return centers, bird_centers, bird_eye_background, distance
+    return centers, bird_centers, warped_flip, distance
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
