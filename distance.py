@@ -1,10 +1,11 @@
 import cv2
 
 from bird import convert_to_bird
-from functions import compute_distance, distance_pts
+from functions import compute_distance, mouse_pts, distance_pts
 
 img = None
 preview = None
+distance_pts = []
 initialPoint = (-1, -1)
 filled = False
 
@@ -54,7 +55,7 @@ def recover_two_points():
     :return: The four points
     """
 
-    global img, filled
+    global filled, img, preview
 
     # Takes only the name of the file without its extension
     window_name = 'train_frame'
@@ -90,7 +91,7 @@ def draw_distance(event, x, y, flags, param):
     :param param:
     :return:
     """
-    global initialPoint, preview, filled
+    global initialPoint, distance_pts, preview, filled, img
 
     if len(distance_pts) == 0:
 
@@ -115,4 +116,5 @@ def draw_distance(event, x, y, flags, param):
                 distance_pts.append((x, y))
 
     elif len(distance_pts) == 2:
+        print(distance_pts)
         filled = True

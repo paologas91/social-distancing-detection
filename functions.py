@@ -38,7 +38,7 @@ def recover_four_points():
     cv2.setMouseCallback(window_name, draw_lines)
 
     # Recovers and saves into the project path the first frame of the selected video
-    img = cv2.imread('first_frame_with_black_stripes.jpg')
+    img = cv2.imread('first_frame.jpg')
     # img = cv2.imread('first_frame.jpg')
     while not filled:
         # if we are drawing show preview, otherwise the image
@@ -65,7 +65,7 @@ def draw_lines(event, x, y, flags, param):
     :param param:
     :return:
     """
-    global initialPoint, preview, distance_pts ,mouse_pts, filled
+    global initialPoint, preview, distance_pts, mouse_pts, filled
 
     if len(mouse_pts) == 0:
 
@@ -134,10 +134,6 @@ def ask_to_confirm(window_name):
     print('Do you want to confirm the choice? (y/n)')
     answer = input()
     if answer == 'y' or answer == 'Y':
-        print('YEESSSSSSSSSSSSSS')
-        print('mouse pts = ', mouse_pts)
-        print('distance pts = ', distance_pts)
-        print('filled = ', filled)
         cv2.destroyWindow(window_name)
         return True
     else:
@@ -145,14 +141,8 @@ def ask_to_confirm(window_name):
         if window_name == 'first_frame_with_polygon.jpg':
             mouse_pts = []
 
-        elif window_name == 'train_frame_with_line.jpg':
+        if window_name == 'train_frame_with_line.jpg':
             distance_pts = []
-            print('distance pts = ', distance_pts)
-
-        print('NOOOOOOOOOOOOOOOOOOOOOOO')
-        print('mouse pts = ', mouse_pts)
-        print('distance pts = ', distance_pts)
-        print('filled = ', filled)
 
         cv2.destroyWindow(window_name)
         os.remove(window_name)

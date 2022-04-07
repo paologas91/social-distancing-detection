@@ -26,12 +26,12 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
     # Pass the frame through the model and get the boxes
     results = model([frame[:, :, ::-1]])
 
-    img = cv2.imread('first_frame_with_black_stripes.jpg')
+    img = cv2.imread('first_frame_with_polygon.jpg')
     height_1 = img.shape[0]
     width_1 = img.shape[1]
 
     # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height_1, width_1, 3), np.uint8)
+    bird_eye_background = np.zeros((height_1*3, width_1, 3), np.uint8)
     print("dimensioni bird_eye_background: ", bird_eye_background.shape)
     bird_eye_background[:, :, :] = 0
 
@@ -63,12 +63,12 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, filter_m)
-    warped = cv2.resize(warped, (width, height))
+    # warped = cv2.resize(bird_eye_background, (width, height))
 
     colors = ['green'] * len(bird_centers)
+    shift = int(width/2)
 
     for i in range(len(bird_centers)):
-        '''
         for j in range(i + 1, len(bird_centers)):
             # Calculate distance of the centers
             dist = compute_distance(bird_centers[i], bird_centers[j])
@@ -86,11 +86,11 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 n_violations = n_violations + 1
 
                 # Draws a red line between the two persons which are violating the distance
-                warped = cv2.line(warped,
-                                               (int(x1), int(y1)),
-                                               (int(x2), int(y2)),
+                bird_eye_background = cv2.line(bird_eye_background,
+                                               (int(x1), int(y1/3)),
+                                               (int(x2), int(y2/3)),
                                                (0, 0, 255), 2)
-        '''
+
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
             color = (0, 255, 0)
@@ -99,18 +99,19 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
 
         x, y = bird_center
         x = int(x)
-        y = int(y)
+        y = int(y/3)
 
         # TODO: Modify the radius of the circle based on video resolution
-        warped = cv2.circle(warped, (x, y), 8, color, -1)
+        bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
 
     # warped_flip = cv2.flip(bird_eye_background, 0)
 
     # Concat the black bird-eye image with the frame
-    warped_flip = cv2.hconcat([warped, frame])
+    bird_eye_background = cv2.resize(bird_eye_background, (width, height))
+    bird_eye_background = cv2.hconcat([bird_eye_background, frame])
 
     # Display the number of people in the frame
-    cv2.putText(img=warped_flip,
+    cv2.putText(img=bird_eye_background,
                 text="Number of people: " + str(shape[0]),
                 org=(335, 20),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
@@ -119,7 +120,7 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 thickness=2)
 
     # Display the number of violations in the frame
-    cv2.putText(img=warped_flip,
+    cv2.putText(img=bird_eye_background,
                 text="Number of violations: " + str(n_violations),
                 org=(335, 40),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
@@ -127,7 +128,7 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 color=(255, 255, 255),
                 thickness=2)
 
-    return centers, bird_centers, warped_flip, distance
+    return centers, bird_centers, bird_eye_background, distance
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
@@ -171,7 +172,6 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
-
 
                 # Write new video
                 out.write(frame)

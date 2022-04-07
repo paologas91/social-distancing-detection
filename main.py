@@ -3,11 +3,12 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
 from distance import *
-from functions import recover_four_points, ask_to_confirm, mouse_pts, distance_pts
+from functions import recover_four_points, ask_to_confirm
 from model import *
 from video import *
 from image import *
 from detect import *
+global mouse_pts, distance_pts
 
 # select and open video file
 Tk().withdraw()
@@ -34,23 +35,23 @@ if filename != "":
     recover_first_frame(filename_compressed)
 
     # Draw two black stripes at the left and at the right of the first frame
-    draw_img_with_black_stripes('first_frame.jpg', width)
-
-    # Recover the ROI and ask to confirm the choice
-    answer = False
-    while not answer:
-        mouse_pts = recover_four_points()
-        print("mouse pts: \n", mouse_pts)
-        window_name = 'first_frame_with_polygon.jpg'
-        answer = ask_to_confirm(window_name)
+    # draw_img_with_black_stripes('first_frame.jpg', width)
 
     # Recover two points and ask to confirm the choice
     answer = False
     while not answer:
         choose_frame_to_draw_distance(filename_compressed)
         distance_pts = recover_two_points()
-        print("distance pts: \n", distance_pts)
+        print("MAIN distance pts: ", distance_pts)
         window_name = 'train_frame_with_line.jpg'
+        answer = ask_to_confirm(window_name)
+
+    # Recover the ROI and ask to confirm the choice
+    answer = False
+    while not answer:
+        mouse_pts = recover_four_points()
+        print("MAIN mouse pts: ", mouse_pts)
+        window_name = 'first_frame_with_polygon.jpg'
         answer = ask_to_confirm(window_name)
 
     # compute the top-down perspective (bird's eye view)
