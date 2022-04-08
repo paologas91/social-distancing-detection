@@ -8,30 +8,27 @@ from functions import compute_distance
 from video import saveVideo
 
 
-def detect_people_on_frame(model, frame, confidence, height, width, pts, filename, frame_number, distance):
+def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, bird_distance):
     """
     Detect people on a frame and draw the rectangles and lines.
     :param model:
-    :param frame:
+    :param sdd_frame:
     :param confidence:
-    :param distance:
+    :param bird_distance:
     :param height:
     :param width:
     :param pts:
-    :param filename
     :param frame_number
     :return:
     """
-    n_violations = 0
-    # Pass the frame through the model and get the boxes
-    results = model([frame[:, :, ::-1]])
+    sdd_violations = 0
+    yolo_violations = 0
 
-    img = cv2.imread('first_frame_with_polygon.jpg')
-    height_1 = img.shape[0]
-    width_1 = img.shape[1]
+    # Pass the frame through the model and get the boxes
+    results = model([sdd_frame[:, :, ::-1]])
 
     # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height_1, width_1, 3), np.uint8)
+    bird_eye_background = np.zeros((height, width, 3), np.uint8)
     print("dimensioni bird_eye_background: ", bird_eye_background.shape)
     bird_eye_background[:, :, :] = 0
 
@@ -49,67 +46,105 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
     # Number of rows of xyxy correspond to the number of person inside each frame
     shape = np.shape(xyxy)
 
-    # Calculate the centers of the bottom of the boxes
-    centers = []
+    # Calculate the yolo_centers of the bottom of the boxes
+    yolo_centers = []
     for x1, y1, x2, y2 in xyxy:
         center = [np.mean([x1, x2]), y2]
-        centers.append(center)
+        yolo_centers.append(center)
+
+    # copy the sdd_frame to save the reference
+    yolo_frame = sdd_frame.copy()
 
     filter_m, warped = compute_bird_eye(pts)
 
     if frame_number == 1:
-        distance = compute_bird_distance(filter_m)
-        print('distance =', distance)
+        bird_distance = compute_bird_distance(filter_m)
+        print('distance =', bird_distance)
 
     # Convert to bird so we can calculate the usual distance
-    bird_centers = convert_to_bird(centers, filter_m)
-    # warped = cv2.resize(bird_eye_background, (width, height))
+    bird_centers = convert_to_bird(yolo_centers, filter_m)
 
-    colors = ['green'] * len(bird_centers)
-    shift = int(width / 2)
+    # initialize bird_colors array
+    bird_colors = ['green'] * len(bird_centers)
+
+    # initialize bird_colors array
+    yolo_colors = ['green'] * len(yolo_centers)
 
     for i in range(len(bird_centers)):
         for j in range(i + 1, len(bird_centers)):
-            # Calculate distance of the centers
+
+            # Calculate distance of the yolo_centers
             dist = compute_distance(bird_centers[i], bird_centers[j])
 
-            if dist < distance:
+            if dist < bird_distance:
+
                 # If dist < distance, boxes are red and a line is drawn
-                colors[i] = 'red'
-                colors[j] = 'red'
+                bird_colors[i] = 'red'
+                bird_colors[j] = 'red'
+
                 x1, y1 = bird_centers[i]
                 x2, y2 = bird_centers[j]
 
-                print(int(x1), int(y1), int(x2), int(y2))
-
                 # Increments the number of violations
-                n_violations = n_violations + 1
+                sdd_violations = sdd_violations + 1
 
-                # Draws a red line between the two persons which are violating the distance
+                # Draws a red line in the bird_eye frame between the two persons which are violating the distance
                 warped = cv2.line(warped,
                                   (int(x1), int(y1)),
                                   (int(x2), int(y2)),
                                   (0, 0, 255), 2)
 
+                # Draws a red line in the sdd_frame between the two persons which are violating the distance
+                sdd_frame = cv2.line(sdd_frame,
+                                     (int(x1), int(y1)),
+                                     (int(x2), int(y2)),
+                                     (0, 0, 255), 2)
+
+            if dist < bird_distance:
+                # If dist < distance, boxes are red and a line is drawn
+                yolo_colors[i] = 'red'
+                yolo_colors[j] = 'red'
+
+                x1_1, y1_1 = yolo_centers[i]
+                x2_1, y2_1 = yolo_centers[j]
+
+                # Increments the number of violations
+                yolo_violations = yolo_violations + 1
+
+                # Draws a red line in the yolo_frame between the two persons which are violating the distance
+                yolo_frame = cv2.line(yolo_frame,
+                                      (int(x1_1), int(y1_1)),
+                                      (int(x2_1), int(y2_1)),
+                                      (0, 0, 255), 2)
+
     for i, bird_center in enumerate(bird_centers):
-        if colors[i] == 'green':
-            color = (0, 255, 0)
+
+        if bird_colors[i] == 'green':
+            bird_color = (0, 255, 0)
         else:
-            color = (0, 0, 255)
+            bird_color = (0, 0, 255)
+
+        if yolo_colors [i] == 'green':
+            yolo_color = (0, 255, 0)
+        else:
+            yolo_color = (0, 0, 255)
+
+        sdd_frame = cv2.rectangle(sdd_frame, (int(x1), int(y1)), (int(x2), int(y2)), bird_color, 2)
+        yolo_frame = cv2.rectangle(yolo_frame, (int(x1_1), int(y1_1)), (int(x2_1), int(y2_1)), yolo_color, 2)
 
         x, y = bird_center
         x = int(x)
         y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
-        # bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
-        warped = cv2.circle(warped, (x, y), 8, color, -1)
+        warped = cv2.circle(warped, (x, y), 8, bird_color, -1)
+
     warped_flip = cv2.flip(warped, 0)
 
     # Concat the black bird-eye image with the frame
     warped_flip = cv2.resize(warped_flip, (width, height))
-    warped_flip = cv2.hconcat([frame, warped_flip])
-    warped_flip = cv2.hconcat(([warped_flip, frame]))
+    warped_flip = cv2.hconcat([yolo_frame, warped_flip])
+    warped_flip = cv2.hconcat(([warped_flip, sdd_frame]))
 
     # add border for titles and description
     color = (0, 0, 0)
@@ -117,9 +152,9 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
     warped_flip = cv2.copyMakeBorder(warped_flip, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
 
     # display titles and counter
-    add_text(warped_flip, height, width, shape, n_violations)
+    add_text(warped_flip, height, width, shape, sdd_violations, yolo_violations)
 
-    return centers, bird_centers, warped_flip, distance
+    return yolo_centers, bird_centers, warped_flip, bird_distance
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
@@ -138,7 +173,7 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
     # Capture video
     cap = cv2.VideoCapture(filename)
     frame_number = 0
-    distance = 0
+    bird_distance = 0
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
@@ -154,12 +189,12 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
             # If it's ok
             if ret:
                 frame_number = frame_number + 1
-                centers, bird_centers, frame, distance = detect_people_on_frame(model,
-                                                                                frame,
-                                                                                confidence,
-                                                                                height,
-                                                                                width,
-                                                                                pts, filename, frame_number, distance)
+                centers, bird_centers, frame, bird_distance = detect_people_on_frame(model,
+                                                                                     frame,
+                                                                                     confidence,
+                                                                                     height,
+                                                                                     width,
+                                                                                     pts, frame_number, bird_distance)
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
@@ -178,12 +213,12 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
     cv2.destroyAllWindows()
 
 
-def add_text(frame, height, width, shape, n_violations):
+def add_text(frame, height, width, shape, sdd_violations, yolo_violation):
 
     # Display yolov5 title
     cv2.putText(img=frame,
                 text="Yolo v5",
-                org=(int(width/2 - 50), 30),
+                org=(int(width / 2 - 50), 30),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 color=(255, 255, 255),
@@ -192,7 +227,7 @@ def add_text(frame, height, width, shape, n_violations):
     # Display Bird Eye View title
     cv2.putText(img=frame,
                 text="Bird Eye View",
-                org=(int(width + width/2 - 100), 30),
+                org=(int(width + width / 2 - 100), 30),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 color=(255, 255, 255),
@@ -201,7 +236,7 @@ def add_text(frame, height, width, shape, n_violations):
     # Display SDD (Social distancig detection) title
     cv2.putText(img=frame,
                 text="SDD",
-                org=(int(width*2 + width/2 - 40), 30),
+                org=(int(width * 2 + width / 2 - 40), 30),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 color=(255, 255, 255),
@@ -209,7 +244,7 @@ def add_text(frame, height, width, shape, n_violations):
 
     # Display the number of people in the first frame
     cv2.putText(img=frame,
-                text="#People: " + str(shape[0]),
+                text="#People:" + str(shape[0]),
                 org=(30, height + 85),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
@@ -218,7 +253,7 @@ def add_text(frame, height, width, shape, n_violations):
 
     # Display the number of violations in the first frame
     cv2.putText(img=frame,
-                text="#Violations: " + str(n_violations),
+                text="#Violations:" + str(yolo_violation),
                 org=(220, height + 85),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
@@ -227,7 +262,7 @@ def add_text(frame, height, width, shape, n_violations):
 
     # Display the number of people in the second and third frame
     cv2.putText(img=frame,
-                text="#People: " + str(shape[0]),
+                text="#People:" + str(shape[0]),
                 org=(width * 2 - 190, height + 85),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
@@ -236,7 +271,7 @@ def add_text(frame, height, width, shape, n_violations):
 
     # Display the number of violations in second and third the frame
     cv2.putText(img=frame,
-                text="#Violations: " + str(n_violations),
+                text="#Violations:" + str(sdd_violations),
                 org=(width * 2, height + 85),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
