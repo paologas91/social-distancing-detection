@@ -10,7 +10,6 @@ def compute_bird_eye(pts):
     :return:
     """
     img = cv2.imread('first_frame.jpg')
-    print(img.shape)
     height = img.shape[0]
     width = img.shape[1]
 
@@ -21,9 +20,6 @@ def compute_bird_eye(pts):
     # output_pts = np.float32([[pts[0][0], pts[3][1]], [pts[1][0], pts[2][1]], [pts[1][0], 0], [pts[0][0], 0]])
     output_pts = np.float32([[pts[0][0], height], [pts[1][0], height], [pts[1][0], 0], [pts[0][0], 0]])
     # output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
-
-    print("\ninput_pts: \n", input_pts)
-    print("output_pts: \n", output_pts)
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)

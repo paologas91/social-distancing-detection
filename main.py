@@ -42,7 +42,6 @@ if filename != "":
     answer = False
     while not answer:
         mouse_pts = recover_four_points()
-        print("MAIN mouse pts: ", mouse_pts)
         window_name = 'first_frame_with_polygon.jpg'
         answer = ask_to_confirm(window_name)
 
@@ -52,7 +51,6 @@ if filename != "":
         print("Draw a distance line by selecting two points on the frame.")
         distance_pts = recover_two_points()
         insert_distance_in_meters()
-        print("MAIN distance pts: ", distance_pts)
         window_name = 'train_frame_with_line.jpg'
         answer = ask_to_confirm(window_name)
 

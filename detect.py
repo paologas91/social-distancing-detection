@@ -3,19 +3,20 @@ import numpy as np
 from tqdm import tqdm
 
 from bird import convert_to_bird, compute_bird_eye
-from distance import compute_bird_distance
-from functions import compute_distance, cls
-
+from distance import compute_bird_distance, compute_yolo_distance
+from functions import compute_distance, center_distance
 from video import saveVideo
 
 
-def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, bird_distance):
+def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, one_meter_threshold_bird,
+                           one_meter_threshold_yolo):
     """
     Detect people on a frame and draw the rectangles and lines.
+    :param one_meter_threshold_bird:
+    :param one_meter_threshold_yolo:
     :param model:
     :param sdd_frame:
     :param confidence:
-    :param bird_distance:
     :param height:
     :param width:
     :param pts:
@@ -30,7 +31,6 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
 
     # Return a new array of given shape and type, filled with zeros.
     bird_eye_background = np.zeros((height, width, 3), np.uint8)
-    print("dimensioni bird_eye_background: ", bird_eye_background.shape)
     bird_eye_background[:, :, :] = 0
 
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
@@ -59,8 +59,8 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
     filter_m, warped = compute_bird_eye(pts)
 
     if frame_number == 1:
-        bird_distance = compute_bird_distance(filter_m)
-        print('distance =', bird_distance)
+        one_meter_threshold_bird = compute_bird_distance(filter_m)
+        one_meter_threshold_yolo = compute_yolo_distance()
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(yolo_centers, filter_m)
@@ -76,9 +76,17 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
 
             # Calculate distance of the yolo_centers
             dist = compute_distance(bird_centers[i], bird_centers[j])
+            dist_1, x1_1, y1_1, x2_1, y2_1 = center_distance(xyxy[i], xyxy[j])
 
-            if dist < bird_distance:
+            print("\n")
+            print("Bird distance: ", dist)
+            print("Bird Threshold:", one_meter_threshold_bird)
 
+            print("Yolo distance: ", dist_1)
+            print("Yolo Threshold:", one_meter_threshold_yolo)
+            print("\n")
+
+            if dist < one_meter_threshold_bird:
                 # If dist < distance, boxes are red and a line is drawn
                 bird_colors[i] = 'red'
                 bird_colors[j] = 'red'
@@ -97,17 +105,14 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
 
                 # Draws a red line in the sdd_frame between the two persons which are violating the distance
                 sdd_frame = cv2.line(sdd_frame,
-                                     (int(x1), int(y1)),
-                                     (int(x2), int(y2)),
+                                     (int(x1_1), int(y1_1)),
+                                     (int(x2_1), int(y2_1)),
                                      (0, 0, 255), 2)
 
-            if dist < bird_distance:
+            if dist_1 < one_meter_threshold_yolo:
                 # If dist < distance, boxes are red and a line is drawn
                 yolo_colors[i] = 'red'
                 yolo_colors[j] = 'red'
-
-                x1_1, y1_1 = yolo_centers[i]
-                x2_1, y2_1 = yolo_centers[j]
 
                 # Increments the number of violations
                 yolo_violations = yolo_violations + 1
@@ -118,6 +123,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
                                       (int(x2_1), int(y2_1)),
                                       (0, 0, 255), 2)
 
+    # draw the circles in the bird_eye frame
     for i, bird_center in enumerate(bird_centers):
 
         if bird_colors[i] == 'green':
@@ -125,20 +131,28 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         else:
             bird_color = (0, 0, 255)
 
-        if yolo_colors [i] == 'green':
-            yolo_color = (0, 255, 0)
-        else:
-            yolo_color = (0, 0, 255)
-
-        sdd_frame = cv2.rectangle(sdd_frame, (int(x1), int(y1)), (int(x2), int(y2)), bird_color, 2)
-        yolo_frame = cv2.rectangle(yolo_frame, (int(x1_1), int(y1_1)), (int(x2_1), int(y2_1)), yolo_color, 2)
-
         x, y = bird_center
         x = int(x)
         y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
         warped = cv2.circle(warped, (x, y), 8, bird_color, -1)
+
+    # draw the rectangles in yolo and sdd frames
+    for i, (x1, y1, x2, y2) in enumerate(xyxy):
+
+        if bird_colors[i] == 'green':
+            bird_color = (0, 255, 0)
+        else:
+            bird_color = (0, 0, 255)
+
+        if yolo_colors[i] == 'green':
+            yolo_color = (0, 255, 0)
+        else:
+            yolo_color = (0, 0, 255)
+
+        sdd_frame = cv2.rectangle(sdd_frame, (int(x1), int(y1)), (int(x2), int(y2)), bird_color, 2)
+        yolo_frame = cv2.rectangle(yolo_frame, (int(x1), int(y1)), (int(x2), int(y2)), yolo_color, 2)
 
     warped_flip = cv2.flip(warped, 0)
 
@@ -155,8 +169,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
     # display titles and counter
     add_text(warped_flip, height, width, shape, sdd_violations, yolo_violations)
 
-    cls()
-    return yolo_centers, bird_centers, warped_flip, bird_distance
+    return yolo_centers, bird_centers, warped_flip, one_meter_threshold_bird, one_meter_threshold_yolo
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
@@ -174,12 +187,12 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
 
     # Capture video
     cap = cv2.VideoCapture(filename)
-    frame_number = 0
-    bird_distance = 0
-    # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # out = cv2.VideoWriter('output.avi', fourcc, fps, (width * 2, height))
 
+    frame_number = 0
+    one_meter_threshold_bird = 0
+    one_meter_threshold_yolo = 0
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = saveVideo(fourcc, fps, width, height)
 
     # Iterate through frames and detect people
@@ -191,15 +204,18 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
             # If it's ok
             if ret:
                 frame_number = frame_number + 1
-                centers, bird_centers, frame, bird_distance = detect_people_on_frame(model,
-                                                                                     frame,
-                                                                                     confidence,
-                                                                                     height,
-                                                                                     width,
-                                                                                     pts, frame_number, bird_distance)
+                centers, bird_centers, frame, one_meter_threshold_bird, one_meter_threshold_yolo = detect_people_on_frame(
+                    model,
+                    frame,
+                    confidence,
+                    height,
+                    width,
+                    pts, frame_number, one_meter_threshold_bird, one_meter_threshold_yolo)
+                '''
                 print('frame n°', frame_number)
                 print('#####centers####', centers)
                 print('####bird_centers####', bird_centers)
+                '''
 
                 # Write new video
                 out.write(frame)
@@ -216,7 +232,6 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
 
 
 def add_text(frame, height, width, shape, sdd_violations, yolo_violation):
-
     # Display yolov5 title
     cv2.putText(img=frame,
                 text="Yolo v5",

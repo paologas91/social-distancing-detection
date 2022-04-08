@@ -13,7 +13,6 @@ def convert_video(path):
     # split a given input string into different substrings based on a delimiter and take the first cell of the array
     filename = os.path.basename(os.path.normpath(path))
     compressed_path = filename.split('.')[0]  # "test"
-    print(compressed_path)
     compressed_path = 'compressed_' + compressed_path + '.mp4'  # "test.mp4"
 
     # remove the file if already exists
@@ -110,6 +109,5 @@ def saveVideo(fourcc, fps, width, height):
     while os.path.exists(path):
         count = count + 1
         path = folder + "experiment" + str(count) + ".avi"
-    print(filename)
     out = cv2.VideoWriter(path, fourcc, fps, (width * 3, height + 100))
     return out

@@ -19,8 +19,6 @@ def choose_frame_to_draw_distance(filename):
     :param filename: The path of the video to convert
     :return:
     """
-
-    print("filename:", filename)
     cap = cv2.VideoCapture(filename)
 
     # Check if camera opened successfully
@@ -52,10 +50,14 @@ def choose_frame_to_draw_distance(filename):
 def compute_bird_distance(filter_m):
     convert_to_bird_distance = convert_to_bird(distance_pts, filter_m)
     distance_bird = compute_distance(convert_to_bird_distance[0], convert_to_bird_distance[1])
-    pixel_in_meters = float(distance_bird) / float(meters)
-    print("distance bird: ", distance_bird)
-    print(pixel_in_meters)
-    return pixel_in_meters
+    one_meter_threshold_bird = float(distance_bird) / float(meters)
+    return one_meter_threshold_bird
+
+
+def compute_yolo_distance():
+    yolo_distance = compute_distance(distance_pts[0], distance_pts[1])
+    one_meter_threshold_yolo = float(yolo_distance) / float(meters)
+    return one_meter_threshold_yolo
 
 
 def recover_two_points():
@@ -95,7 +97,6 @@ def insert_distance_in_meters():
 
     print("Insert the value of the distance in meters: ")
     meters = input()
-    print(meters)
 
 
 def draw_distance(event, x, y, flags, param):
@@ -133,5 +134,4 @@ def draw_distance(event, x, y, flags, param):
                 distance_pts.append((x, y))
 
     elif len(distance_pts) == 2:
-        print(distance_pts)
         filled = True

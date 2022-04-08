@@ -132,7 +132,6 @@ def ask_to_confirm(window_name):
     global filled, mouse_pts, distance_pts
 
     frame = cv2.imread(window_name)
-    print(window_name)
     cv2.imshow(window_name, frame)
     cv2.waitKey(1)
     print('Do you want to confirm the choice? (y/n)')
