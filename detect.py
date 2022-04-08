@@ -4,7 +4,8 @@ from tqdm import tqdm
 
 from bird import convert_to_bird, compute_bird_eye
 from distance import compute_bird_distance
-from functions import compute_distance
+from functions import compute_distance, cls
+
 from video import saveVideo
 
 
@@ -154,6 +155,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
     # display titles and counter
     add_text(warped_flip, height, width, shape, sdd_violations, yolo_violations)
 
+    cls()
     return yolo_centers, bird_centers, warped_flip, bird_distance
 
 

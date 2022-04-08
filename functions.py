@@ -11,6 +11,10 @@ initialPoint = (-1, -1)
 filled = False
 
 
+def cls():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+
 def compute_distance(point_1, point_2):
     """
     Calculate usual distance
@@ -135,6 +139,7 @@ def ask_to_confirm(window_name):
     answer = input()
     if answer == 'y' or answer == 'Y':
         cv2.destroyWindow(window_name)
+        cls()
         return True
     else:
         filled = False

@@ -1,5 +1,7 @@
 import os
 import cv2
+import sys
+from functions import cls
 
 
 def convert_video(path):
@@ -36,7 +38,9 @@ def display_video(filename):
     # Check if camera opened successfully
     if not cap.isOpened():
         print("Error opening video stream or file")
+        sys.exit()
 
+    print("Press 'q' to quit the video")
     # Read until video is completed
     while cap.isOpened():
         # Capture frame-by-frame
@@ -47,6 +51,7 @@ def display_video(filename):
 
             # Press Q on keyboard to  exit
             if cv2.waitKey(25) & 0xFF == ord('q'):
+                cls()
                 break
 
         # Break the loop

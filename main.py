@@ -49,6 +49,7 @@ if filename != "":
     answer = False
     while not answer:
         choose_frame_to_draw_distance(filename_compressed)
+        print("Draw a distance line by selecting two points on the frame.")
         distance_pts = recover_two_points()
         insert_distance_in_meters()
         print("MAIN distance pts: ", distance_pts)

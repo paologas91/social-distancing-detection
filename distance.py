@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 
 from bird import convert_to_bird
@@ -24,6 +26,9 @@ def choose_frame_to_draw_distance(filename):
     # Check if camera opened successfully
     if not cap.isOpened():
         print("Error opening video stream or file")
+        sys.exit()
+
+    print("Keep pressed any arrow key to show the next frame. Then press 'y' to select the frame you chose.")
     while cap.isOpened():
         # Capture frame-by-frame
         ret, frame = cap.read()
