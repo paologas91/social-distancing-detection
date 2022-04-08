@@ -106,5 +106,5 @@ def saveVideo(fourcc, fps, width, height):
         count = count + 1
         path = folder + "experiment" + str(count) + ".avi"
     print(filename)
-    out = cv2.VideoWriter(path, fourcc, fps, (width * 2, height))
+    out = cv2.VideoWriter(path, fourcc, fps, (width * 3, height + 100))
     return out

@@ -61,13 +61,12 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
         distance = compute_bird_distance(filter_m)
         print('distance =', distance)
 
-
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(centers, filter_m)
     # warped = cv2.resize(bird_eye_background, (width, height))
 
     colors = ['green'] * len(bird_centers)
-    shift = int(width/2)
+    shift = int(width / 2)
 
     for i in range(len(bird_centers)):
         for j in range(i + 1, len(bird_centers)):
@@ -87,10 +86,10 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
                 n_violations = n_violations + 1
 
                 # Draws a red line between the two persons which are violating the distance
-                warped= cv2.line(warped,
-                                               (int(x1), int(y1)),
-                                               (int(x2), int(y2)),
-                                               (0, 0, 255), 2)
+                warped = cv2.line(warped,
+                                  (int(x1), int(y1)),
+                                  (int(x2), int(y2)),
+                                  (0, 0, 255), 2)
 
     for i, bird_center in enumerate(bird_centers):
         if colors[i] == 'green':
@@ -103,32 +102,22 @@ def detect_people_on_frame(model, frame, confidence, height, width, pts, filenam
         y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
-        #bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
+        # bird_eye_background = cv2.circle(bird_eye_background, (x, y), 8, color, -1)
         warped = cv2.circle(warped, (x, y), 8, color, -1)
     warped_flip = cv2.flip(warped, 0)
 
     # Concat the black bird-eye image with the frame
     warped_flip = cv2.resize(warped_flip, (width, height))
-    warped_flip = cv2.hconcat([warped_flip, frame])
+    warped_flip = cv2.hconcat([frame, warped_flip])
+    warped_flip = cv2.hconcat(([warped_flip, frame]))
 
+    # add border for titles and description
+    color = (0, 0, 0)
+    bottom, up = [50] * 2
+    warped_flip = cv2.copyMakeBorder(warped_flip, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
 
-    # Display the number of people in the frame
-    cv2.putText(img=warped_flip,
-                text="Number of people: " + str(shape[0]),
-                org=(335, 20),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.5,
-                color=(255, 255, 255),
-                thickness=2)
-
-    # Display the number of violations in the frame
-    cv2.putText(img=warped_flip,
-                text="Number of violations: " + str(n_violations),
-                org=(335, 40),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.5,
-                color=(255, 255, 255),
-                thickness=2)
+    # display titles and counter
+    add_text(warped_flip, height, width, shape, n_violations)
 
     return centers, bird_centers, warped_flip, distance
 
@@ -187,3 +176,69 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+
+
+def add_text(frame, height, width, shape, n_violations):
+
+    # Display yolov5 title
+    cv2.putText(img=frame,
+                text="Yolo v5",
+                org=(int(width/2 - 50), 30),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(255, 255, 255),
+                thickness=2)
+
+    # Display Bird Eye View title
+    cv2.putText(img=frame,
+                text="Bird Eye View",
+                org=(int(width + width/2 - 100), 30),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(255, 255, 255),
+                thickness=2)
+
+    # Display SDD (Social distancig detection) title
+    cv2.putText(img=frame,
+                text="SDD",
+                org=(int(width*2 + width/2 - 40), 30),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(255, 255, 255),
+                thickness=2)
+
+    # Display the number of people in the first frame
+    cv2.putText(img=frame,
+                text="#People: " + str(shape[0]),
+                org=(30, height + 85),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(255, 255, 255),
+                thickness=2)
+
+    # Display the number of violations in the first frame
+    cv2.putText(img=frame,
+                text="#Violations: " + str(n_violations),
+                org=(220, height + 85),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(0, 0, 255),
+                thickness=2)
+
+    # Display the number of people in the second and third frame
+    cv2.putText(img=frame,
+                text="#People: " + str(shape[0]),
+                org=(width * 2 - 190, height + 85),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(255, 255, 255),
+                thickness=2)
+
+    # Display the number of violations in second and third the frame
+    cv2.putText(img=frame,
+                text="#Violations: " + str(n_violations),
+                org=(width * 2, height + 85),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                color=(0, 0, 255),
+                thickness=2)
