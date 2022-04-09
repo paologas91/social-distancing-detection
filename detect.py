@@ -1,11 +1,9 @@
 import cv2
 import numpy as np
 from tqdm import tqdm
-
 from bird import convert_to_bird, compute_bird_eye
-from distance import compute_bird_distance, compute_yolo_distance
-from functions import compute_distance, center_distance
-from video import saveVideo
+from distance import compute_bird_distance, compute_yolo_distance, compute_distance, center_distance
+from video import save_video
 
 
 def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, one_meter_threshold_bird,
@@ -194,7 +192,7 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
     one_meter_threshold_yolo = 0
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = saveVideo(fourcc, fps, width, height)
+    out = save_video(fourcc, fps, width, height)
 
     # Iterate through frames and detect people
     vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -205,13 +203,14 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
             # If it's ok
             if ret:
                 frame_number = frame_number + 1
-                centers, bird_centers, frame, one_meter_threshold_bird, one_meter_threshold_yolo = detect_people_on_frame(
-                    model,
-                    frame,
-                    confidence,
-                    height,
-                    width,
-                    pts, frame_number, one_meter_threshold_bird, one_meter_threshold_yolo)
+                centers, bird_centers, frame, one_meter_threshold_bird, one_meter_threshold_yolo = \
+                    detect_people_on_frame(
+                        model,
+                        frame,
+                        confidence,
+                        height,
+                        width,
+                        pts, frame_number, one_meter_threshold_bird, one_meter_threshold_yolo)
                 '''
                 print('frame n°', frame_number)
                 print('#####centers####', centers)

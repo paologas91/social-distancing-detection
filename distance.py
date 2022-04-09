@@ -1,9 +1,9 @@
 import sys
-
 import cv2
-
+import os
+import numpy as np
 from bird import convert_to_bird
-from functions import compute_distance, mouse_pts, distance_pts
+from system import cls
 
 img = None
 preview = None
@@ -13,10 +13,41 @@ filled = False
 meters = 0.0
 
 
-def choose_frame_to_draw_distance(filename):
+def compute_distance(point_1, point_2):
     """
-    Converts the video in a compressed mp4 version
-    :param filename: The path of the video to convert
+    Calculate usual distance
+    :param point_1: First point
+    :param point_2: Second point
+    :return: The distance
+    """
+    x1, y1 = point_1
+    x2, y2 = point_2
+    return np.linalg.norm([x1 - x2, y1 - y2])
+
+
+def center_distance(xyxy1, xyxy2):
+    """
+    Calculate the distance of the centers of the boxes.
+    :param xyxy1:
+    :param xyxy2:
+    :return:
+    """
+    a, b, c, d = xyxy1
+    x1 = int(np.mean([a, c]))
+    y1 = int(np.mean([b, d]))
+
+    e, f, g, h = xyxy2
+    x2 = int(np.mean([e, g]))
+    y2 = int(np.mean([f, h]))
+
+    dist = np.linalg.norm([x1 - x2, y1 - y2])
+    return dist, x1, y1, x2, y2
+
+
+def choose_distance_frame(filename):
+    """
+
+    :param filename:
     :return:
     """
     cap = cv2.VideoCapture(filename)
@@ -25,74 +56,92 @@ def choose_frame_to_draw_distance(filename):
     if not cap.isOpened():
         print("Error opening video stream or file")
         sys.exit()
-    frameList=[]
+    frame_list = []
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             # Display the resulting frame
-            frameList.append(frame)
+            frame_list.append(frame)
         else:
             break
     cap.release()
-    print("Choose the frame where you draw the distance \n Press 'x' to view next frame \n Press 'z' to view previous frame \n Press 's' to save the frame")
-    nextFrame=1
-    currentFrame=0
-    previousFrame=-1
-    cv2.imshow("take_frame",frameList[currentFrame])
+    print("Choose the frame on which you will draw the distance \n Press 'x' to display the next frame \n Press 'z' "
+          "to display the previous frame \n Press 's' to choose the frame")
+    next_frame = 1
+    current_frame = 0
+    previous_frame = -1
+    cv2.imshow("Choose the frame on which you will draw the distance", frame_list[current_frame])
     while True:
-        key = cv2.waitKey(0)
-        if  nextFrame<=len(frameList)-1 and key == ord('x'):
-            previousFrame = currentFrame
-            currentFrame = nextFrame
-            nextFrame = nextFrame + 1
-            cv2.imshow("take_frame", frameList[currentFrame])
-        elif previousFrame>=0 and key == ord('z'):
-            nextFrame = currentFrame
-            currentFrame = previousFrame
-            previousFrame = previousFrame - 1
-            cv2.imshow("take_frame", frameList[currentFrame])
-        elif key==ord('s'):
-            cv2.imwrite("train_frame.jpg",frameList[currentFrame])
-            cv2.destroyWindow("take_frame")
+        key = cv2.waitKey(0) & 0xFF
+
+        if next_frame <= len(frame_list) - 1 and key == ord('x'):
+
+            previous_frame = current_frame
+            current_frame = next_frame
+            next_frame = next_frame + 1
+            cv2.imshow("Choose the frame on which you will draw the distance", frame_list[current_frame])
+
+        elif previous_frame >= 0 and key == ord('z'):
+
+            next_frame = current_frame
+            current_frame = previous_frame
+            previous_frame = previous_frame - 1
+            cv2.imshow("Choose the frame on which you will draw the distance", frame_list[current_frame])
+
+        elif key == ord('s'):
+
+            cv2.imwrite("distance_frame.jpg", frame_list[current_frame])
+            cv2.destroyWindow("Choose the frame on which you will draw the distance")
             break
 
 
 def compute_bird_distance(filter_m):
+    """
+
+    :param filter_m:
+    :return:
+    """
     convert_to_bird_distance = convert_to_bird(distance_pts, filter_m)
     distance_bird = compute_distance(convert_to_bird_distance[0], convert_to_bird_distance[1])
     one_meter_threshold_bird = float(distance_bird) / float(meters)
+
     return one_meter_threshold_bird
 
 
 def compute_yolo_distance():
+    """
+
+    :return:
+    """
     yolo_distance = compute_distance(distance_pts[0], distance_pts[1])
     one_meter_threshold_yolo = float(yolo_distance) / float(meters)
+
     return one_meter_threshold_yolo
 
 
-def recover_two_points():
+def recover_distance_points():
     """
-    Function to recover the four points of the polygon drawn on the image
-    :return: The four points
+    Function to recover the two points of the distance
+    :return: The two points
     """
 
     global filled, img, preview
 
     # Takes only the name of the file without its extension
-    window_name = 'train_frame'
+    window_name = 'distance_frame'
 
     # Opens the window to start drawing the 4 points
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, draw_distance)
 
     # Recovers and saves into the project path the first frame of the selected video
-    img = cv2.imread('train_frame.jpg')
+    img = cv2.imread('distance_frame.jpg')
     while not filled:
         # if we are drawing show preview, otherwise the image
         if preview is None:
-            cv2.imshow('train_frame', img)
+            cv2.imshow('distance_frame', img)
         else:
-            cv2.imshow('train_frame', preview)
+            cv2.imshow('distance_frame', preview)
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
             break
@@ -145,3 +194,28 @@ def draw_distance(event, x, y, flags, param):
 
     elif len(distance_pts) == 2:
         filled = True
+
+
+def ask_to_confirm_distance(window_name):
+    """
+
+    :return:
+    """
+    global filled, distance_pts
+
+    frame = cv2.imread(window_name)
+    cv2.imshow(window_name, frame)
+    cv2.waitKey(1)
+    print('Do you want to confirm the choice? (y/n)')
+    answer = input()
+    if answer == 'y' or answer == 'Y':
+        cv2.destroyWindow(window_name)
+        cls()
+        return True
+    else:
+        filled = False
+        distance_pts = []
+
+        cv2.destroyWindow(window_name)
+        os.remove(window_name)
+        return False

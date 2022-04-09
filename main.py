@@ -1,16 +1,15 @@
-import sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-
 from distance import *
-from functions import recover_four_points, ask_to_confirm
+from roi import *
 from model import *
 from video import *
-from image import *
 from detect import *
-global mouse_pts, distance_pts
 
-# select and open video file
+
+mouse_pts = []
+
+# Select and open a video file
 Tk().withdraw()
 filename = askopenfilename(title='Select a video file...', filetypes=[("all video format", ".mp4"),
                                                                       ("all video format", ".flv"),
@@ -19,10 +18,10 @@ filename = askopenfilename(title='Select a video file...', filetypes=[("all vide
 
 if filename != "":
 
-    # convert video
+    # Convert video
     filename_compressed = convert_video(filename)
 
-    # display video
+    # Display video
     display_video(filename_compressed)
 
     # Load model
@@ -34,26 +33,22 @@ if filename != "":
     # Recover the first frame of the selected video
     recover_first_frame(filename_compressed)
 
-    # Draw two black stripes at the left and at the right of the first frame
-    # draw_img_with_black_stripes('first_frame.jpg', width)
-
-    # Recover two points and ask to confirm the choice
     # Recover the ROI and ask to confirm the choice
     answer = False
     while not answer:
-        mouse_pts = recover_four_points()
+        mouse_pts = recover_roi_points()
         window_name = 'first_frame_with_polygon.jpg'
-        answer = ask_to_confirm(window_name)
+        answer = ask_to_confirm_roi(window_name)
 
+    # Recover the two points of the distance and ask to confirm the choice
     answer = False
     while not answer:
-        choose_frame_to_draw_distance(filename_compressed)
+        choose_distance_frame(filename_compressed)
         print("Draw a distance line by selecting two points on the frame.")
-        distance_pts = recover_two_points()
+        distance_pts = recover_distance_points()
         insert_distance_in_meters()
-        window_name = 'train_frame_with_line.jpg'
-        answer = ask_to_confirm(window_name)
-
+        window_name = 'distance_frame_with_line.jpg'
+        answer = ask_to_confirm_distance(window_name)
 
     # compute the top-down perspective (bird's eye view)
     # compute_bird_eye()

@@ -1,7 +1,7 @@
 import os
 import cv2
 import sys
-from functions import cls
+from roi import cls
 
 
 def convert_video(path):
@@ -95,14 +95,18 @@ def recover_first_frame(filename):
     cap.release()
 
 
-def saveVideo(fourcc, fps, width, height):
+def save_video(fourcc, fps, width, height):
     """
-
+    Saves the video into the 'experiments' folder
+    :param fourcc:
+    :param fps:
+    :param width:
+    :param height:
     :return:
     """
     count = 0
     filename = "experiment" + str(count) + ".avi"
-    folder = "./experiment/"
+    folder = "./experiments/"
     path = folder + filename
     if not os.path.exists(folder):
         os.makedirs(folder)

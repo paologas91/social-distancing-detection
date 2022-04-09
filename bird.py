@@ -41,6 +41,7 @@ def convert_to_bird(centers, filter_m):
     centers = [list(center[0, 0]) for center in centers.copy()]
     return centers
 
+
 """
 version giuseppe-birdeye
 def compute_bird_eye(height, width, pts):
