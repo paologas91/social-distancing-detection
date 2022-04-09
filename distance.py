@@ -25,26 +25,36 @@ def choose_frame_to_draw_distance(filename):
     if not cap.isOpened():
         print("Error opening video stream or file")
         sys.exit()
-
-    print("Keep pressed any arrow key to show the next frame. Then press 'y' to select the frame you chose.")
+    frameList=[]
     while cap.isOpened():
-        # Capture frame-by-frame
         ret, frame = cap.read()
         if ret:
             # Display the resulting frame
-            cv2.imshow(filename, frame)
-            cv2.waitKey(0)
-            # Press Q on keyboard to  exit
-            if cv2.waitKey(0) & 0xFF == ord('y'):
-                cv2.imwrite("train_frame.jpg", frame)
-                cv2.destroyWindow(filename)
-                break
-        # Break the loop
+            frameList.append(frame)
         else:
             break
-
-        # When everything done, release the video capture object
     cap.release()
+    print("Choose the frame where you draw the distance \n Press 'x' to view next frame \n Press 'z' to view previous frame \n Press 's' to save the frame")
+    nextFrame=1
+    currentFrame=0
+    previousFrame=-1
+    cv2.imshow("take_frame",frameList[currentFrame])
+    while True:
+        key = cv2.waitKey(0)
+        if  nextFrame<=len(frameList)-1 and key == ord('x'):
+            previousFrame = currentFrame
+            currentFrame = nextFrame
+            nextFrame = nextFrame + 1
+            cv2.imshow("take_frame", frameList[currentFrame])
+        elif previousFrame>=0 and key == ord('z'):
+            nextFrame = currentFrame
+            currentFrame = previousFrame
+            previousFrame = previousFrame - 1
+            cv2.imshow("take_frame", frameList[currentFrame])
+        elif key==ord('s'):
+            cv2.imwrite("train_frame.jpg",frameList[currentFrame])
+            cv2.destroyWindow("take_frame")
+            break
 
 
 def compute_bird_distance(filter_m):
