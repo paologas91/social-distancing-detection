@@ -155,6 +155,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         yolo_frame = cv2.rectangle(yolo_frame, (int(x1), int(y1)), (int(x2), int(y2)), yolo_color, 2)
 
     warped_flip = cv2.flip(warped, 0)
+    warped_flip = cv2.flip(warped_flip, 0)
 
     # Concat the black bird-eye image with the frame
     warped_flip = cv2.resize(warped_flip, (width, height))

@@ -14,18 +14,16 @@ def compute_bird_eye(pts):
     width = img.shape[1]
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
-    input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
-
+    input_pts = np.float32([pts[0], pts[1], pts[3], pts[2]])
 
     # output_pts = np.float32([[pts[0][0], pts[3][1]], [pts[1][0], pts[2][1]], [pts[1][0], 0], [pts[0][0], 0]])
-    output_pts = np.float32([[pts[0][0], height], [pts[1][0], height], [pts[1][0], 0], [pts[0][0], 0]])
+    # output_pts = np.float32([[pts[0][0], height], [pts[1][0], height], [pts[1][0], 0], [pts[0][0], 0]])
     # output_pts = np.float32([[0,0],[400,0],[0,600],[400,600]])
+    output_pts = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
-    out = cv2.warpPerspective(img, filter_m, (width, height*2))
-
-    # cv2.imshow("frame",out)
+    out = cv2.warpPerspective(img, filter_m, (width, height))
 
     cv2.imwrite('bird_eye.jpg', out)
 
