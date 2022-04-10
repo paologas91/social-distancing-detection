@@ -9,7 +9,7 @@ from video import save_video
 def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, one_meter_threshold_bird,
                            one_meter_threshold_yolo):
     """
-    Detect people on a frame and draw the rectangles and lines.
+    Detect people on a frame and draw the rectangles and lines
     :param one_meter_threshold_bird:
     :param one_meter_threshold_yolo:
     :param model:
@@ -54,7 +54,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
     # copy the sdd_frame to save the reference
     yolo_frame = sdd_frame.copy()
 
-    filter_m, warped = compute_bird_eye(pts)
+    filter_m, bird_eye_frame = compute_bird_eye(pts)
 
     if frame_number == 1:
         one_meter_threshold_bird = compute_bird_distance(filter_m)
@@ -96,10 +96,10 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
                 sdd_violations = sdd_violations + 1
 
                 # Draws a red line in the bird_eye frame between the two persons which are violating the distance
-                warped = cv2.line(warped,
-                                  (int(x1), int(y1)),
-                                  (int(x2), int(y2)),
-                                  (0, 0, 255), 2)
+                bird_eye_frame = cv2.line(bird_eye_frame,
+                                          (int(x1), int(y1)),
+                                          (int(x2), int(y2)),
+                                          (0, 0, 255), 2)
 
                 # Draws a red line in the sdd_frame between the two persons which are violating the distance
                 sdd_frame = cv2.line(sdd_frame,
@@ -134,7 +134,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
-        warped = cv2.circle(warped, (x, y), 8, bird_color, -1)
+        bird_eye_frame = cv2.circle(bird_eye_frame, (x, y), 8, bird_color, -1)
 
     # draw the rectangles in yolo and sdd frames
     for i, (x1, y1, x2, y2) in enumerate(xyxy):
@@ -152,23 +152,20 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         sdd_frame = cv2.rectangle(sdd_frame, (int(x1), int(y1)), (int(x2), int(y2)), bird_color, 2)
         yolo_frame = cv2.rectangle(yolo_frame, (int(x1), int(y1)), (int(x2), int(y2)), yolo_color, 2)
 
-    warped_flip = cv2.flip(warped, 0)
-    warped_flip = cv2.flip(warped_flip, 0)
-
-    # Concat the black bird-eye image with the frame
-    warped_flip = cv2.resize(warped_flip, (width, height))
-    warped_flip = cv2.hconcat([yolo_frame, warped_flip])
-    warped_flip = cv2.hconcat(([warped_flip, sdd_frame]))
+    # Concat the yolo, bird-eye and ssd frames into one
+    bird_eye_frame = cv2.resize(bird_eye_frame, (width, height))
+    bird_eye_frame = cv2.hconcat([yolo_frame, bird_eye_frame])
+    bird_eye_frame = cv2.hconcat(([bird_eye_frame, sdd_frame]))
 
     # add border for titles and description
     color = (0, 0, 0)
     bottom, up = [50] * 2
-    warped_flip = cv2.copyMakeBorder(warped_flip, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
+    bird_eye_frame = cv2.copyMakeBorder(bird_eye_frame, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
 
     # display titles and counter
-    add_text(warped_flip, height, width, shape, sdd_violations, yolo_violations)
+    add_text(bird_eye_frame, height, width, shape, sdd_violations, yolo_violations)
 
-    return yolo_centers, bird_centers, warped_flip, one_meter_threshold_bird, one_meter_threshold_yolo
+    return yolo_centers, bird_centers, bird_eye_frame, one_meter_threshold_bird, one_meter_threshold_yolo
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
