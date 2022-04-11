@@ -50,14 +50,7 @@ if filename != "":
         window_name = 'distance_frame_with_line.jpg'
         answer = ask_to_confirm_distance(window_name)
 
-    # compute the top-down perspective (bird's eye view)
-    # compute_bird_eye()
-
-    # detect people and compute distances among people
-    # detect_people_on_video2(model, filename, confidence=0.5)
-    # distance=(input("insert the distance in metro:"))
-    # distance=int(distance)*100
-
+    # Run the inference and shows the results
     detect_people_on_video(model, filename_compressed, fps, height, width, mouse_pts, confidence=0.5)
 
 else:

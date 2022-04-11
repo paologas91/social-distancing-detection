@@ -121,6 +121,8 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
                                       (int(x2_1), int(y2_1)),
                                       (0, 0, 255), 2)
 
+
+
     # draw the circles in the bird_eye frame
     for i, bird_center in enumerate(bird_centers):
 
@@ -129,12 +131,14 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         else:
             bird_color = (0, 0, 255)
 
+
         x, y = bird_center
         x = int(x)
         y = int(y)
 
         # TODO: Modify the radius of the circle based on video resolution
-        bird_eye_frame = cv2.circle(bird_eye_frame, (x, y), 8, bird_color, -1)
+        bird_eye_frame = cv2.circle(bird_eye_frame, (int(x), int(y)), 8, bird_color, -1)
+
 
     # draw the rectangles in yolo and sdd frames
     for i, (x1, y1, x2, y2) in enumerate(xyxy):
@@ -153,9 +157,10 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         yolo_frame = cv2.rectangle(yolo_frame, (int(x1), int(y1)), (int(x2), int(y2)), yolo_color, 2)
 
     # Concat the yolo, bird-eye and ssd frames into one
+    bird_eye_frame=cv2.flip(bird_eye_frame,0)
     bird_eye_frame = cv2.resize(bird_eye_frame, (width, height))
-    bird_eye_frame = cv2.hconcat([yolo_frame, bird_eye_frame])
-    bird_eye_frame = cv2.hconcat(([bird_eye_frame, sdd_frame]))
+    yolo_frame = cv2.hconcat([yolo_frame, sdd_frame])
+    bird_eye_frame = cv2.hconcat(([yolo_frame,bird_eye_frame]))
 
     # add border for titles and description
     color = (0, 0, 0)
@@ -240,8 +245,8 @@ def add_text(frame, height, width, shape, sdd_violations, yolo_violation):
 
     # Display Bird Eye View title
     cv2.putText(img=frame,
-                text="Bird Eye View",
-                org=(int(width + width / 2 - 100), 30),
+                text="SDD",
+                org=(int(width + width / 2 - 50), 30),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 color=(255, 255, 255),
@@ -249,8 +254,8 @@ def add_text(frame, height, width, shape, sdd_violations, yolo_violation):
 
     # Display SDD (Social distancig detection) title
     cv2.putText(img=frame,
-                text="SDD",
-                org=(int(width * 2 + width / 2 - 40), 30),
+                text="Bird Eye View",
+                org=(int(width * 2 + width / 2-90), 30),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 color=(255, 255, 255),
