@@ -7,7 +7,7 @@ from video import save_video
 
 
 def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, frame_number, one_meter_threshold_bird,
-                           one_meter_threshold_yolo):
+                           one_meter_threshold_yolo,filter_m, bird_eye_frame):
     """
     Detect people on a frame and draw the rectangles and lines
     :param one_meter_threshold_bird:
@@ -54,7 +54,8 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
     # copy the sdd_frame to save the reference
     yolo_frame = sdd_frame.copy()
 
-    filter_m, bird_eye_frame = compute_bird_eye(pts)
+
+
 
     if frame_number == 1:
         one_meter_threshold_bird = compute_bird_distance(filter_m)
@@ -62,6 +63,7 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
 
     # Convert to bird so we can calculate the usual distance
     bird_centers = convert_to_bird(yolo_centers, filter_m)
+
 
     # initialize bird_colors array
     bird_colors = ['green'] * len(bird_centers)
@@ -135,7 +137,6 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         x, y = bird_center
         x = int(x)
         y = int(y)
-
         # TODO: Modify the radius of the circle based on video resolution
         bird_eye_frame = cv2.circle(bird_eye_frame, (int(x), int(y)), 8, bird_color, -1)
 
@@ -157,20 +158,19 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, pts, fra
         yolo_frame = cv2.rectangle(yolo_frame, (int(x1), int(y1)), (int(x2), int(y2)), yolo_color, 2)
 
     # Concat the yolo, bird-eye and ssd frames into one
-    bird_eye_frame=cv2.flip(bird_eye_frame,0)
-    bird_eye_frame = cv2.resize(bird_eye_frame, (width, height))
+    new_bird_eye_frame = cv2.resize(bird_eye_frame, (width, height))
     yolo_frame = cv2.hconcat([yolo_frame, sdd_frame])
-    bird_eye_frame = cv2.hconcat(([yolo_frame,bird_eye_frame]))
+    new_bird_eye_frame = cv2.hconcat(([yolo_frame,new_bird_eye_frame]))
 
     # add border for titles and description
     color = (0, 0, 0)
     bottom, up = [50] * 2
-    bird_eye_frame = cv2.copyMakeBorder(bird_eye_frame, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
+    new_bird_eye_frame = cv2.copyMakeBorder(new_bird_eye_frame, bottom, up, 0, 0, cv2.BORDER_CONSTANT, value=color)
 
     # display titles and counter
-    add_text(bird_eye_frame, height, width, shape, sdd_violations, yolo_violations)
+    add_text(new_bird_eye_frame, height, width, shape, sdd_violations, yolo_violations)
 
-    return yolo_centers, bird_centers, bird_eye_frame, one_meter_threshold_bird, one_meter_threshold_yolo
+    return yolo_centers, bird_centers, new_bird_eye_frame, one_meter_threshold_bird, one_meter_threshold_yolo
 
 
 def detect_people_on_video(model, filename, fps, height, width, pts, confidence):
@@ -195,7 +195,8 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = save_video(fourcc, fps, width, height)
-
+    filter_m = compute_bird_eye(pts)
+    img_bird_eye=cv2.imread('bird_eye.jpg')
     # Iterate through frames and detect people
     vidlen = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     with tqdm(total=vidlen) as pbar:
@@ -204,6 +205,7 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
             ret, frame = cap.read()
             # If it's ok
             if ret:
+                bird_eye_frame=img_bird_eye.copy()
                 frame_number = frame_number + 1
                 centers, bird_centers, frame, one_meter_threshold_bird, one_meter_threshold_yolo = \
                     detect_people_on_frame(
@@ -212,7 +214,7 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
                         confidence,
                         height,
                         width,
-                        pts, frame_number, one_meter_threshold_bird, one_meter_threshold_yolo)
+                        pts, frame_number, one_meter_threshold_bird, one_meter_threshold_yolo,filter_m, bird_eye_frame)
                 '''
                 print('frame n°', frame_number)
                 print('#####centers####', centers)

@@ -10,35 +10,31 @@ def compute_bird_eye(pts):
     :return:
     """
     img = cv2.imread('first_frame.jpg')
-    heightMax= img.shape[0]
-    widthMax = img.shape[1]
+    height= img.shape[0]
+    width = img.shape[1]
+    print("height,width:",height,width)
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
     input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
 
-
-    #output_pts = np.float32([[0, 0], [width, 0], [width, height], [0, height]])
-
-    if heightMax==228:
-        output_pts=np.float32([[pts[0][0], pts[2][1]*2],[pts[1][0], pts[2][1]*2],pts[1],pts[0]])
-        heightMax=heightMax*3
+    if height==282:
+        width_out = width * 2
+        height_out = height*4
+        finalWidth = width_out + width
+        finalHeight = height_out + height
     else:
-        output_pts = np.float32([[pts[0][0], pts[2][1]],[pts[1][0], pts[2][1]],pts[1],pts[0]])
-        heightMax = heightMax * 2
+        width_out = width * 2
+        height_out = height * 3
+        finalWidth = width_out + width
+        finalHeight = height_out + height
 
-
-    print("input:",input_pts)
-    print ("output:",output_pts)
+    output_pts = np.float32([[width, height], [width_out, height], [width_out, height_out], [width, height_out]])
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
-
-    out = cv2.warpPerspective(img, filter_m, (widthMax, heightMax))
-
-
+    out = cv2.warpPerspective(img, filter_m, (finalWidth, finalHeight))
     cv2.imwrite('bird_eye.jpg', out)
-
-    return filter_m, out
+    return filter_m
 
 
 def convert_to_bird(centers, filter_m):
