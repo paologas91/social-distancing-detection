@@ -12,27 +12,24 @@ def compute_bird_eye(pts):
     img = cv2.imread('first_frame.jpg')
     height= img.shape[0]
     width = img.shape[1]
-    print("height,width:",height,width)
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
     input_pts = np.float32([pts[0], pts[1], pts[2], pts[3]])
 
-    if height==282:
-        width_out = width * 2
+    width_out = width * 2
+    if height == 282:
         height_out = height*4
-        finalWidth = width_out + width
-        finalHeight = height_out + height
+
     else:
-        width_out = width * 2
         height_out = height * 3
-        finalWidth = width_out + width
-        finalHeight = height_out + height
+    final_width = width_out + width
+    final_height = height_out + height
 
     output_pts = np.float32([[width, height], [width_out, height], [width_out, height_out], [width, height_out]])
 
     # Compute the transformation matrix
     filter_m = cv2.getPerspectiveTransform(input_pts, output_pts)
-    out = cv2.warpPerspective(img, filter_m, (finalWidth, finalHeight))
+    out = cv2.warpPerspective(img, filter_m, (final_width, final_height))
     cv2.imwrite('bird_eye.jpg', out)
     return filter_m
 
