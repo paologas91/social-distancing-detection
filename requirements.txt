@@ -10,3 +10,4 @@ matplotlib
 seaborn
 numpy~=1.22.3
 torch~=1.11.0
+requests

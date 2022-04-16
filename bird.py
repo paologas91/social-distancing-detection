@@ -10,7 +10,7 @@ def compute_bird_eye(pts):
     :return:
     """
     img = cv2.imread('first_frame.jpg')
-    height= img.shape[0]
+    height = img.shape[0]
     width = img.shape[1]
 
     # mapping the ROI (region of interest) into a rectangle from bottom left,bottom right,top right,top left
@@ -18,7 +18,7 @@ def compute_bird_eye(pts):
 
     width_out = width * 2
     if height == 282:
-        height_out = height*4
+        height_out = height * 4
 
     else:
         height_out = height * 3

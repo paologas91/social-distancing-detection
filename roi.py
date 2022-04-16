@@ -1,9 +1,7 @@
-from tqdm import tqdm
 import cv2
 import numpy as np
 import os
 from system import cls
-from distance import center_distance
 
 
 img = None
@@ -18,7 +16,7 @@ def recover_roi_points():
     Function to recover the four points of the polygon drawn on the image
     :return: The four points
     """
-    global distance_pts, mouse_pts, img, filled
+    global mouse_pts, img, filled
 
     # Takes only the name of the file without its extension
     window_name = 'first_frame'
@@ -112,7 +110,7 @@ def draw_polygon(event, x, y, flags, param):
 
 def ask_to_confirm_roi(window_name):
     """
-    
+    Asks to the user if he wants to accept the selected polygon
     :param window_name:
     :return:
     """
