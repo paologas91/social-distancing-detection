@@ -28,10 +28,6 @@ def detect_people_on_frame(model, sdd_frame, confidence, height, width, frame_nu
     # Pass the frame through the model and get the boxes
     results = model([sdd_frame[:, :, ::-1]])
 
-    # Return a new array of given shape and type, filled with zeros.
-    bird_eye_background = np.zeros((height, width, 3), np.uint8)
-    bird_eye_background[:, :, :] = 0
-
     xyxy = results.xyxy[0].cpu().numpy()  # xyxy are the box coordinates
     #          x1 (pixels)  y1 (pixels)  x2 (pixels)  y2 (pixels)   confidence        class
     # tensor([[7.47613e+02, 4.01168e+01, 1.14978e+03, 7.12016e+02, 8.71210e-01, 0.00000e+00],
@@ -207,7 +203,11 @@ def detect_people_on_video(model, filename, fps, height, width, pts, confidence)
                         confidence,
                         height,
                         width,
-                        frame_number, one_meter_threshold_bird, one_meter_threshold_yolo, filter_m, bird_eye_frame)
+                        frame_number, one_meter_threshold_bird,
+                        one_meter_threshold_yolo,
+                        filter_m,
+                        bird_eye_frame
+                    )
                 '''
                 print('frame n°', frame_number)
                 print('#####centers####', centers)

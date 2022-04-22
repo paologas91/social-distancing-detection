@@ -1,7 +1,7 @@
 import os
 import cv2
 import sys
-from roi import cls
+from system import cls
 
 
 def convert_video(path):

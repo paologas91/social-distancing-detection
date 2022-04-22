@@ -110,7 +110,7 @@ def draw_polygon(event, x, y, flags, param):
 
 def ask_to_confirm_roi(window_name):
     """
-    Asks to the user if he wants to accept the selected polygon
+    Asks the user if he wants to accept the selected polygon
     :param window_name:
     :return:
     """

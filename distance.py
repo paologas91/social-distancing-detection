@@ -46,8 +46,8 @@ def center_distance(xyxy1, xyxy2):
 
 def choose_distance_frame(filename):
     """
-
-    :param filename:
+    Let the user choose the frame on which draw the distance
+    :param filename: The video to analyze
     :return:
     """
     cap = cv2.VideoCapture(filename)
@@ -97,12 +97,12 @@ def choose_distance_frame(filename):
 
 def compute_bird_distance(filter_m):
     """
-
-    :param filter_m:
+    Compute the distance between two points using the distance in the bird-eye perspective
+    :param filter_m: The filter matrix
     :return:
     """
-    convert_to_bird_distance = convert_to_bird(distance_pts, filter_m)
-    distance_bird = compute_distance(convert_to_bird_distance[0], convert_to_bird_distance[1])
+    converted_distance = convert_to_bird(distance_pts, filter_m)
+    distance_bird = compute_distance(converted_distance[0], converted_distance[1])
     one_meter_threshold_bird = float(distance_bird) / float(meters)
 
     return one_meter_threshold_bird
@@ -110,7 +110,7 @@ def compute_bird_distance(filter_m):
 
 def compute_yolo_distance():
     """
-
+    Computes the distance between two points using the classical distance
     :return:
     """
     yolo_distance = compute_distance(distance_pts[0], distance_pts[1])
@@ -152,6 +152,9 @@ def recover_distance_points():
 
 
 def insert_distance_in_meters():
+    """
+    Let the user insert the distance in meters in the terminal during the execution
+    """
     global meters
 
     print("Insert the value of the distance in meters: ")
@@ -198,7 +201,8 @@ def draw_distance(event, x, y, flags, param):
 
 def ask_to_confirm_distance(window_name):
     """
-
+    Asks the user if he wants to accept the selected distance
+    :param window_name: The name of the selected frame
     :return:
     """
     global filled, distance_pts

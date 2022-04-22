@@ -19,7 +19,6 @@ def compute_bird_eye(pts):
     width_out = width * 2
     if height == 282:
         height_out = height * 4
-
     else:
         height_out = height * 3
     final_width = width_out + width
